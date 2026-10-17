@@ -1,15 +1,17 @@
 package com.editorial.article.controller;
 
+import com.editorial.article.dto.CreateArticleRequest;
 import com.editorial.article.model.Article;
 import com.editorial.article.service.ArticleService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.BindException;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,5 +37,10 @@ public class ArticleController {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Article not found");
         }
 
+    }
+
+    @PostMapping
+    public ResponseEntity<Article> addArticle(@Valid @RequestBody CreateArticleRequest articleRequest) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.add(articleRequest));
     }
 }

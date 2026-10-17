@@ -1,5 +1,6 @@
 package com.editorial.article.service;
 
+import com.editorial.article.dto.CreateArticleRequest;
 import com.editorial.article.model.Article;
 import com.editorial.article.repository.ArticleRepository;
 import org.springframework.expression.spel.ast.OpInc;
@@ -22,5 +23,9 @@ public class ArticleService {
 
     public Optional<Article> findById(long id) {
         return repository.getArticleById(id);
+    }
+
+    public Article add(CreateArticleRequest requestBody) {
+        return repository.addArticle(new Article(0, requestBody.title(), requestBody.content()));
     }
 }
