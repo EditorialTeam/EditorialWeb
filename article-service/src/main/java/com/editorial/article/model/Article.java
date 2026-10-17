@@ -11,6 +11,11 @@ public class Article {
         this.content = content;
     }
 
+    public Article(String title, String content) {
+        this.title = title;
+        this.content = content;
+    }
+
     public long getId() {
         return id;
     }
