@@ -1,5 +1,6 @@
 package com.editorial.article;
 
+import com.editorial.article.service.ArticleService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
