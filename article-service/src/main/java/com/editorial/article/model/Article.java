@@ -1,14 +1,24 @@
 package com.editorial.article.model;
 
+import jakarta.persistence.*;
+
+import javax.annotation.processing.Generated;
+
+@Entity
+@Table(name = "articles")
 public class Article {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @Column(nullable = false, length = 200)
     private String title;
+
+    @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
-    public Article(long id, String title, String content) {
-        this.id = id;
-        this.title = title;
-        this.content = content;
+    //для jpa
+    protected Article() {
     }
 
     public Article(String title, String content) {
@@ -32,9 +42,6 @@ public class Article {
         this.content = content;
     }
 
-    public void setId(long id) {
-        this.id = id;
-    }
 
     public void setTitle(String title) {
         this.title = title;
