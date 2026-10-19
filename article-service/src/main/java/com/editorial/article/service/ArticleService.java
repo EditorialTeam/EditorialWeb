@@ -6,7 +6,6 @@ import com.editorial.article.dto.UpdateArticleRequest;
 import com.editorial.article.exception.ArticleNotFoundException;
 import com.editorial.article.model.Article;
 import com.editorial.article.repository.ArticleRepository;
-import org.springframework.expression.spel.ast.OpInc;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
