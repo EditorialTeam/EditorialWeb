@@ -1,2 +1,3 @@
-.env example
+``` .env
 DB_PASSWORD={}
+```
