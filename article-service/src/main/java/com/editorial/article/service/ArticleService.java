@@ -43,6 +43,7 @@ public class ArticleService {
     }
     @Transactional
     public void delete(long id) {
+        repository.findById(id).orElseThrow(ArticleNotFoundException::new);
         repository.deleteById(id);
     }
     @Transactional
