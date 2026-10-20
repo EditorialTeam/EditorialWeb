@@ -2,7 +2,6 @@ package com.editorial.article.model;
 
 import jakarta.persistence.*;
 
-import javax.annotation.processing.Generated;
 
 @Entity
 @Table(name = "articles")
