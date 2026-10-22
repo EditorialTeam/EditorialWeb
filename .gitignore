@@ -39,3 +39,6 @@ build/
 .DS_Store
 
 article-service/.env
+user-service/.en
+.env
+**/.env

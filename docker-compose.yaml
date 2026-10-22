@@ -1,0 +1,65 @@
+
+services:
+  postgres-articles:
+    image: postgres:18.6
+    environment:
+      POSTGRES_DB: editorial_articles
+      POSTGRES_USER: editorial
+      POSTGRES_PASSWORD: ${ARTICLE_DB_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - articles_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U editorial -d editorial_articles"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres-users:
+    image: postgres:18.6
+    environment:
+      POSTGRES_DB: editorial_users
+      POSTGRES_USER: editorial
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - users_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U editorial -d editorial_users"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  article-service:
+    build:
+      context: ./article-service
+    ports:
+      - "8081:8081"
+    environment:
+      SERVER_PORT: 8081
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-articles:5432/editorial_articles
+      SPRING_DATASOURCE_USERNAME: editorial
+      SPRING_DATASOURCE_PASSWORD: ${ARTICLE_DB_PASSWORD}
+    depends_on:
+      postgres-articles:
+        condition: service_healthy
+
+  user-service:
+    build:
+      context: ./user-service
+    ports:
+      - "8082:8082"
+    environment:
+      SERVER_PORT: 8082
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-users:5432/editorial_users
+      SPRING_DATASOURCE_USERNAME: editorial
+      SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
+    depends_on:
+      postgres-users:
+        condition: service_healthy
+
+volumes:
+  articles_pgdata:
+  users_pgdata:
