@@ -1,7 +1,7 @@
 package com.editorial.user.service;
 
 import com.editorial.user.dto.RegisterUserRequest;
-import com.editorial.user.dto.UserResponse;
+import com.editorial.user.dto.UserRegisterResponse;
 import com.editorial.user.exception.UserAlreadyExistsException;
 import com.editorial.user.model.User;
 import com.editorial.user.model.UserRole;
@@ -23,7 +23,7 @@ public class AuthService {
     }
 
     @Transactional
-    public UserResponse register(RegisterUserRequest request) {
+    public UserRegisterResponse register(RegisterUserRequest request) {
         String email = request.email().strip().toLowerCase(Locale.ROOT);
         String username = request.username();
         String password = request.password();
@@ -36,6 +36,6 @@ public class AuthService {
 
         User saved = repository.save(new User(username, email, hash, UserRole.USER));
 
-        return new UserResponse(username, email, saved.getCreatedAt());
+        return new UserRegisterResponse(username, email, saved.getCreatedAt());
     }
 }
