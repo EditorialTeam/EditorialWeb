@@ -1,4 +1,4 @@
-package com.editorial.user.configuration;
+package com.editorial.auth.configuration;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

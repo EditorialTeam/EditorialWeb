@@ -1,8 +1,8 @@
-package com.editorial.user.controller;
+package com.editorial.auth.controller;
 
-import com.editorial.user.dto.RegisterUserRequest;
-import com.editorial.user.dto.UserRegisterResponse;
-import com.editorial.user.service.AuthService;
+import com.editorial.auth.dto.RegisterAccountRequest;
+import com.editorial.auth.dto.AccountRegisterResponse;
+import com.editorial.auth.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<UserRegisterResponse> register(@Valid @RequestBody RegisterUserRequest request) {
+    public ResponseEntity<AccountRegisterResponse> register(@Valid @RequestBody RegisterAccountRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.register(request));
     }
 }

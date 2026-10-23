@@ -1,4 +1,4 @@
-package com.editorial.user.dto;
+package com.editorial.auth.dto;
 
 import java.util.Map;
 
