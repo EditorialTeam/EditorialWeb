@@ -1,4 +1,4 @@
-package com.editorial.user.configuration;
+package com.editorial.auth.configuration;
 
 import org.springframework.context.annotation.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
