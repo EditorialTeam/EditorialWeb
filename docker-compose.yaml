@@ -60,6 +60,35 @@ services:
       postgres-users:
         condition: service_healthy
 
+  postgres-auth:
+      image: postgres:18.6
+      environment:
+        POSTGRES_DB: editorial_auth
+        POSTGRES_USER: editorial
+        POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+      ports:
+        - "5436:5432"
+      volumes:
+        - auth_pgdata:/var/lib/postgresql
+      healthcheck:
+        test: [ "CMD-SHELL", "pg_isready -U editorial -d editorial_auth" ]
+        interval: 5s
+        timeout: 5s
+        retries: 10
+
+  auth-service:
+      build: ./auth-service
+      ports:
+        - "8083:8080"
+      environment:
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/editorial_auth
+        SPRING_DATASOURCE_USERNAME: editorial
+        SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
+      depends_on:
+        postgres-auth:
+          condition: service_healthy
+
 volumes:
   articles_pgdata:
   users_pgdata:
+  auth_pgdata:
