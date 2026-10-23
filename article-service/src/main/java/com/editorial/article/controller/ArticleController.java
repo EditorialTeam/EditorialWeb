@@ -44,6 +44,7 @@ public class ArticleController {
     public void deleteArticleById(@PathVariable long id) {
         service.delete(id);
     }
+
     @PatchMapping("/{id}")
     public ResponseEntity<Article> patchArticleById(@Valid @RequestBody PatchArticleRequest request, @PathVariable long id) {
         return ResponseEntity.ok(service.patchById(request, id));
