@@ -1,5 +1,7 @@
 package com.editorial.auth.controller;
 
+import com.editorial.auth.dto.LoginRequest;
+import com.editorial.auth.dto.LoginResponse;
 import com.editorial.auth.dto.RegisterAccountRequest;
 import com.editorial.auth.dto.AccountRegisterResponse;
 import com.editorial.auth.service.AuthService;
@@ -19,5 +21,10 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<AccountRegisterResponse> register(@Valid @RequestBody RegisterAccountRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.register(request));
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
+        return ResponseEntity.ok(service.login(request));
     }
 }

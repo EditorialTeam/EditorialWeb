@@ -19,10 +19,11 @@ import java.util.Locale;
 public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AccountRepository repository;
-
-    public AuthService(PasswordEncoder passwordEncoder, AccountRepository repository) {
+    private final JwtService jwtService;
+    public AuthService(PasswordEncoder passwordEncoder, AccountRepository repository, JwtService jwtService) {
         this.passwordEncoder = passwordEncoder;
         this.repository = repository;
+        this.jwtService = jwtService;
     }
 
     @Transactional
@@ -50,7 +51,7 @@ public class AuthService {
         Account foundAccount = repository.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
 
         if (passwordEncoder.matches(password, foundAccount.getPasswordHash())) {
-            return new LoginResponse(foundAccount.getEmail(), foundAccount.getUsername());
+            return new LoginResponse(jwtService.generateAccessToken(foundAccount), "Bearer", 900L);
         } else {
             throw new InvalidCredentialsException();
         }

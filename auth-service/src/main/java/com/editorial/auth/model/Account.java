@@ -65,6 +65,10 @@ public class Account {
         return passwordHash;
     }
 
+    public AccountRole getRole() {
+        return role;
+    }
+
     public void setUsername(String username) {
         this.username = username;
     }
