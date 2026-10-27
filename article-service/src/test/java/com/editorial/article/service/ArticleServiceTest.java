@@ -74,7 +74,7 @@ public class ArticleServiceTest {
 
         when(repository.findById(5L)).thenReturn(Optional.of(oldArticle));
 
-        Article result = service.updateById(request, 5L);
+        Article result = service.updateById(request, 5L, 1L, "ADMIN");
 
         assertEquals(oldArticle, result);
         assertEquals(request.title(), result.getTitle());
@@ -93,7 +93,7 @@ public class ArticleServiceTest {
 
         when(repository.findById(5L)).thenReturn(Optional.of(oldArticle));
 
-        Article result = service.patchById(request, 5L);
+        Article result = service.patchById(request, 5L, 1L, "ADMIN");
 
         assertEquals(request.title(), result.getTitle());
         assertEquals("Old content", result.getContent());
@@ -111,7 +111,7 @@ public class ArticleServiceTest {
 
         when(repository.findById(5L)).thenReturn(Optional.of(expected));
 
-        service.delete(5L);
+        service.delete(5L, 1L, "ADMIN");
         verify(repository).deleteById(captor.capture());
 
         assertSame(captor.getValue(), expected.getId());
@@ -121,7 +121,7 @@ public class ArticleServiceTest {
     public void shouldThrowWhenNotFoundOnDelete() {
         when(repository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(ArticleNotFoundException.class, () -> service.delete(999L));
+        assertThrows(ArticleNotFoundException.class, () -> service.delete(999L, 1L, "ADMIN"));
 
         verify(repository, never()).deleteById(any(Long.class));
     }

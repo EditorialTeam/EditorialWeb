@@ -40,18 +40,23 @@ public class ArticleController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.add(articleRequest, accountId));
     }
     @PutMapping("/{id}")
-    public Article updateArticleById(@Valid @RequestBody UpdateArticleRequest request, @PathVariable long id) {
-        return service.updateById(request, id);
+    public Article updateArticleById(@Valid @RequestBody UpdateArticleRequest request, @PathVariable long id,
+                                     @AuthenticationPrincipal Jwt jwt) {
+        Long accountId = Long.valueOf(Objects.requireNonNull(jwt.getSubject()));
+        String role = jwt.getClaimAsString("role");
+        return service.updateById(request, id, accountId, role);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void deleteArticleById(@PathVariable long id) {
-        service.delete(id);
+    public void deleteArticleById(@PathVariable long id, @AuthenticationPrincipal Jwt jwt)
+    {
+        service.delete(id, Long.parseLong(jwt.getSubject()), jwt.getClaimAsString("role"));
     }
 
     @PatchMapping("/{id}")
-    public ResponseEntity<Article> patchArticleById(@Valid @RequestBody PatchArticleRequest request, @PathVariable long id) {
-        return ResponseEntity.ok(service.patchById(request, id));
+    public ResponseEntity<Article> patchArticleById(@Valid @RequestBody PatchArticleRequest request, @PathVariable long id,
+                                                    @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.patchById(request, id, Long.parseLong(jwt.getSubject()), jwt.getClaimAsString("role")));
     }
 }
