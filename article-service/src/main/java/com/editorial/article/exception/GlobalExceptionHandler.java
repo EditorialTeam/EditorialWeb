@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.nio.file.AccessDeniedException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -46,5 +47,14 @@ public class GlobalExceptionHandler {
         Map<String, String> errors = Map.of();
 
         return new ApiError(code, message, errors);
+    }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ApiError handleNotProperRights(AccessDeniedException e) {
+        String code = "NOT_ENOUGH_RIGHTS";
+        String message = "Not enough rights to edit this article";
+
+        return new ApiError(code, message, null);
     }
 }

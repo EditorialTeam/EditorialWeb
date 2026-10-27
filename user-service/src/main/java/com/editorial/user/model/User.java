@@ -11,7 +11,7 @@ public class User {
     private Long id;
 
     @Column(name="account_id", nullable = false, unique = true)
-    private Long account_id;
+    private Long accountId;
 
     @Column(name="display_name", nullable = false, length=100)
     private String displayName;
@@ -27,4 +27,9 @@ public class User {
     }
 
     protected User() {}
+
+    public User(Long accountId, String displayName) {
+        this.accountId = accountId;
+        this.displayName = displayName;
+    }
 }

@@ -34,7 +34,7 @@ public class ArticleRepositoryTest {
 
     @Test
     public void shouldSaveAndFindArticle() {
-        Article article = new Article("Test", "Test");
+        Article article = new Article("Test", "Test", 1L);
 
         Article savedArticle = repository.save(article);
 
@@ -51,7 +51,7 @@ public class ArticleRepositoryTest {
 
     @Test
     public void shouldUpdateWhenNotSaved() {
-        Article testArticle = new Article("Test", "Test");
+        Article testArticle = new Article("Test", "Test", 1L);
 
         Article savedArticle = repository.save(testArticle);
 
@@ -72,7 +72,7 @@ public class ArticleRepositoryTest {
 
     @Test
     public void shouldNotUpdateDetachedArticle() {
-        Article original = new Article("Original", "Original");
+        Article original = new Article("Original", "Original", 1L);
 
         Article saved = repository.save(original);
 
@@ -93,7 +93,7 @@ public class ArticleRepositoryTest {
 
     @Test
     public void shouldMergeDetachedArticle() {
-        Article original = new Article("Original", "Original");
+        Article original = new Article("Original", "Original", 1L);
 
         long generatedId = repository.save(original).getId();
 
