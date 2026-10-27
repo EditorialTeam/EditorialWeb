@@ -18,8 +18,9 @@ public class SecurityConfig {
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests((auth) ->
-                auth.requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login")
-                .permitAll().anyRequest().authenticated());
+                auth.requestMatchers(HttpMethod.POST, "/api/auth/register", "/api/auth/login").permitAll()
+                        .requestMatchers(HttpMethod.GET,"/.well-known/jwks.json").permitAll()
+                        .anyRequest().authenticated());
 
         return http.build();
     }
