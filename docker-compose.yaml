@@ -42,6 +42,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-articles:5432/editorial_articles
       SPRING_DATASOURCE_USERNAME: editorial
       SPRING_DATASOURCE_PASSWORD: ${ARTICLE_DB_PASSWORD}
+      JWT_JWK_SET_URI: http://auth-service:8080/.well-known/jwks.json
     depends_on:
       postgres-articles:
         condition: service_healthy
