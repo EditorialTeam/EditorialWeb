@@ -35,7 +35,7 @@ public class JwtConfig {
             publicKey = RsaKeyConverters.x509().convert(input);
         }
 
-        return NimbusJwtEncoder.withKeyPair(publicKey, privateKey).build();
+        return NimbusJwtEncoder.withKeyPair(publicKey, privateKey).jwkPostProcessor(jwk -> jwk.keyID("editorial-key-1")).build();
     }
 
     @Bean
