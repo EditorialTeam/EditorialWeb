@@ -24,14 +24,16 @@ public class ArticleService {
     public List<Article> getAll() {
         return repository.findAll();
     }
+
     @Transactional(readOnly = true)
     public Article findById(long id) {
         Optional<Article> response = repository.findById(id);
         return response.orElseThrow(ArticleNotFoundException::new);
     }
+
     @Transactional
-    public Article add(CreateArticleRequest requestBody) {
-        return repository.save(new Article(requestBody.title(), requestBody.content()));
+    public Article add(CreateArticleRequest requestBody, Long accountId) {
+        return repository.save(new Article(requestBody.title(), requestBody.content(), accountId));
     }
 
     @Transactional

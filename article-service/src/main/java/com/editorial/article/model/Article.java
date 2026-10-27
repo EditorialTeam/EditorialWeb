@@ -16,14 +16,19 @@ public class Article {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    @Column(name="author_account_id", nullable=false)
+    private long authorAccountId;
+
     //для jpa
     protected Article() {
     }
 
-    public Article(String title, String content) {
+    public Article(String title, String content, Long authorAccountId) {
         this.title = title;
         this.content = content;
+        this.authorAccountId = authorAccountId;
     }
+
 
     public long getId() {
         return id;
@@ -37,6 +42,7 @@ public class Article {
         return content;
     }
 
+    public long getAuthorAccountId() {return authorAccountId;}
 
     //testing
     public void setId(Long id) {
@@ -46,7 +52,6 @@ public class Article {
     public void setContent(String content) {
         this.content = content;
     }
-
 
     public void setTitle(String title) {
         this.title = title;

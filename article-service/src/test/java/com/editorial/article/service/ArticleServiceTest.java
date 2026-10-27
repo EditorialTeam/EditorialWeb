@@ -29,7 +29,7 @@ public class ArticleServiceTest {
 
     @Test
     public void shouldReturnArticleWhenExists() {
-        Article testArticle = new Article("", "");
+        Article testArticle = new Article("", "", 1L);
         when(repository.findById(0L)).thenReturn(Optional.of(testArticle));
 
         Article result = service.findById(0L);
@@ -49,11 +49,11 @@ public class ArticleServiceTest {
     public void shouldCreateArticle() {
         ArgumentCaptor<Article> captor = ArgumentCaptor.forClass(Article.class);
         CreateArticleRequest request = new CreateArticleRequest("Test", "Test");
-        Article testArticle = new Article(request.title(), request.content());
+        Article testArticle = new Article(request.title(), request.content(), 1L);
         testArticle.setId(1L);
         when(repository.save(any(Article.class))).thenReturn(testArticle);
 
-        Article result = service.add(request);
+        Article result = service.add(request, 1L);
 
         assertSame(testArticle, result);
 
@@ -69,7 +69,7 @@ public class ArticleServiceTest {
 
         UpdateArticleRequest request = new UpdateArticleRequest("New title", "New content");
 
-        Article oldArticle = new Article("Old title", "Old content");
+        Article oldArticle = new Article("Old title", "Old content", 1L);
         oldArticle.setId(5L);
 
         when(repository.findById(5L)).thenReturn(Optional.of(oldArticle));
@@ -88,7 +88,7 @@ public class ArticleServiceTest {
 
         PatchArticleRequest request = new PatchArticleRequest("New title", null);
 
-        Article oldArticle = new Article("Old title", "Old content");
+        Article oldArticle = new Article("Old title", "Old content", 1L);
         oldArticle.setId(5L);
 
         when(repository.findById(5L)).thenReturn(Optional.of(oldArticle));
@@ -106,7 +106,7 @@ public class ArticleServiceTest {
     public void shouldDelete() {
         ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
 
-        Article expected = new Article("Test", "Test");
+        Article expected = new Article("Test", "Test", 1L);
         expected.setId(5L);
 
         when(repository.findById(5L)).thenReturn(Optional.of(expected));

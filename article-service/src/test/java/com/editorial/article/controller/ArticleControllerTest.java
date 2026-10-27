@@ -40,7 +40,7 @@ public class ArticleControllerTest {
 
     @Test
     void shouldReturnArticleById() throws Exception {
-        Article original = new Article("Original", "Original");
+        Article original = new Article("Original", "Original", 1L);
         when(service.findById(5L)).thenReturn(original);
 
        mockMvc.perform(MockMvcRequestBuilders.get("/api/articles/5")).andExpect(status().isOk()).andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Original"))
@@ -57,7 +57,7 @@ public class ArticleControllerTest {
 
     @Test
     void shouldReturn400WhenTitleIsBlank() throws Exception {
-        Article faultyArticle = new Article("", "Content");
+        Article faultyArticle = new Article("", "Content", 1L);
         mockMvc.perform(MockMvcRequestBuilders.post("/api/articles").content(asJsonString(faultyArticle)).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("Validation error"));
     }
@@ -65,11 +65,11 @@ public class ArticleControllerTest {
     @Test
     void shouldCreateArticle() throws Exception {
         CreateArticleRequest request = new CreateArticleRequest("Content", "Content");
-        Article requestBody = new Article(request.title(), request.content());
-        when(service.add(request)).thenReturn(requestBody);
+        Article requestBody = new Article(request.title(), request.content(), 1L);
+        when(service.add(request, 1L)).thenReturn(requestBody);
         mockMvc.perform(MockMvcRequestBuilders.post("/api/articles").content(asJsonString(requestBody)).contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated());
 
-        verify(service).add(request);
+        verify(service).add(request, 1L);
     }
 }
