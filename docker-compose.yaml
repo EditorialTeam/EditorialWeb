@@ -86,46 +86,61 @@ services:
         SPRING_DATASOURCE_USERNAME: editorial
         SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
         APP_JWT_KEYS_DIRECTORY: /app/keys
+        USER_SERVICE_URL: http://user-service:8000
       volumes:
         - auth_keys:/app/keys:ro
       depends_on:
         postgres-auth:
           condition: service_healthy
 
+  authorization-server:
+    build: ./authorization-server
+    ports:
+      - "8084:8080"
+    volumes:
+      - oauth_keys:/app/keys:ro
+    environment:
+      APP_JWT_KEYS_DIRECTORY: /app/keys
+    depends_on:
+      jwt-keygen:
+        condition: service_completed_successfully
+
   jwt-keygen:
     image: alpine/openssl:latest
-    entrypoint: [ "/bin/sh", "-c" ]
+    entrypoint: ["/bin/sh", "-ec"]
     command:
       - |
         set -eu
-
-        if [ -f /keys/private.pem ] && [ -f /keys/public.pem ]; then
-          echo "RSA keys already exist"
-
-        elif [ ! -e /keys/private.pem ] && [ ! -e /keys/public.pem ]; then
-          echo "Generating RSA keys"
-
-          umask 077
-
-          openssl genpkey \
-            -algorithm RSA \
-            -pkeyopt rsa_keygen_bits:3072 \
-            -out /keys/private.pem
-
-          openssl pkey \
-            -in /keys/private.pem \
-            -pubout \
-            -out /keys/public.pem
-
-          echo "RSA keys generated"
-
-        else
-          echo "Incomplete RSA key pair" >&2
-          exit 1
-        fi
+        for dir in /keys/auth /keys/oauth; do
+          if [ -f "$$dir/private.pem" ] && [ -f "$$dir/public.pem" ]; then
+            echo "RSA keys already exist in $$dir"
+  
+          elif [ ! -e "$$dir/private.pem" ] && [ ! -e "$$dir/public.pem" ]; then
+            echo "Generating RSA keys in $$dir"
+  
+            umask 077
+  
+            openssl genpkey \
+              -algorithm RSA \
+              -pkeyopt rsa_keygen_bits:3072 \
+              -out "$$dir/private.pem"
+  
+            openssl pkey \
+              -in "$$dir/private.pem" \
+              -pubout \
+              -out "$$dir/public.pem"
+  
+            echo "RSA keys generated"
+  
+          else
+            echo "Incomplete RSA key pair in $$dir" >&2
+            exit 1
+          fi
+        done
 
     volumes:
-      - auth_keys:/keys
+      - auth_keys:/keys/auth
+      - oauth_keys:/keys/oauth
     restart: "no"
 
 volumes:
@@ -133,3 +148,4 @@ volumes:
   users_pgdata:
   auth_pgdata:
   auth_keys:
+  oauth_keys:
