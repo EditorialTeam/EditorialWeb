@@ -86,12 +86,16 @@ services:
         SPRING_DATASOURCE_USERNAME: editorial
         SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
         APP_JWT_KEYS_DIRECTORY: /app/keys
+        OAUTH_CLIENT_SECRETS: /app/secrets
         USER_SERVICE_URL: http://user-service:8080
       volumes:
         - auth_keys:/app/keys:ro
+        - oauth_secrets:/app/secrets:ro
       depends_on:
         postgres-auth:
           condition: service_healthy
+        secrets-gen:
+          condition: service_completed_successfully
 
   authorization-server:
     build: ./authorization-server
@@ -99,13 +103,15 @@ services:
       - "8084:8080"
     volumes:
       - oauth_keys:/app/keys:ro
+      - oauth_secrets:/app/secrets:ro
     environment:
       APP_JWT_KEYS_DIRECTORY: /app/keys
+      OAUTH_CLIENT_SECRET: /app/secrets
     depends_on:
-      rsa-keygen:
+      secrets-gen:
         condition: service_completed_successfully
 
-  rsa-keygen:
+  secrets-gen:
     image: alpine/openssl:latest
     entrypoint: ["/bin/sh", "-ec"]
     command:
@@ -137,10 +143,19 @@ services:
             exit 1
           fi
         done
+        
+        if [ ! -f /secrets/client_secret ]; then
+          umask 077
+          openssl rand -hex 32 > /secrets/client_secret
+          echo "OAuth2 client secret generated"
+        else
+          echo "OAuth2 client secret already exists"
+        fi
 
     volumes:
       - auth_keys:/keys/auth
       - oauth_keys:/keys/oauth
+      - oauth_secrets:/secrets
     restart: "no"
 
 volumes:
@@ -149,3 +164,4 @@ volumes:
   auth_pgdata:
   auth_keys:
   oauth_keys:
+  oauth_secrets:
