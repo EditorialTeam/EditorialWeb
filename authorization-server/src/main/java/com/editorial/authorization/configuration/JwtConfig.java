@@ -8,12 +8,16 @@ import com.nimbusds.jose.proc.SecurityContext;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.*;
 import org.springframework.security.converter.RsaKeyConverters;
+import org.springframework.security.oauth2.server.authorization.OAuth2TokenType;
+import org.springframework.security.oauth2.server.authorization.token.JwtEncodingContext;
+import org.springframework.security.oauth2.server.authorization.token.OAuth2TokenCustomizer;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
+import java.util.List;
 
 @Configuration
 public class JwtConfig {
@@ -42,5 +46,23 @@ public class JwtConfig {
         JWKSet jwkSet = new JWKSet(rsaKey);
 
         return new ImmutableJWKSet<>(jwkSet);
+    }
+
+    @Bean
+    public OAuth2TokenCustomizer<JwtEncodingContext> jwtCustomizer() {
+        return context -> {
+            if (!OAuth2TokenType.ACCESS_TOKEN.equals(context.getTokenType())) {
+                return;
+            }
+
+            String clientId = context.getRegisteredClient().getClientId();
+
+            switch(clientId) {
+                case "editorial-auth-service" ->
+                    context.getClaims().audience(List.of("editorial-user-service"));
+                default -> throw new IllegalStateException("Unknown client" + clientId);
+            }
+
+        };
     }
 }

@@ -106,7 +106,7 @@ services:
       - oauth_secrets:/app/secrets:ro
     environment:
       APP_JWT_KEYS_DIRECTORY: /app/keys
-      OAUTH_CLIENT_SECRET: /app/secrets
+      OAUTH_CLIENT_SECRETS: /app/secrets
     depends_on:
       secrets-gen:
         condition: service_completed_successfully
