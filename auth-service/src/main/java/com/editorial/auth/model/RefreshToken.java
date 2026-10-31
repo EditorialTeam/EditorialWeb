@@ -13,7 +13,7 @@ public class RefreshToken {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="account_id", nullable = false)
-    private long accountId;
+    private Account account;
 
     @Column(name="token_hash", nullable = false, unique = true, length=64)
     private String tokenHash;
@@ -29,8 +29,8 @@ public class RefreshToken {
 
     protected RefreshToken() {}
 
-    public RefreshToken(long accountId, String tokenHash, Instant createdAt, Instant expiresAt, Instant revokedAt) {
-        this.accountId = accountId;
+    public RefreshToken(Account account, String tokenHash, Instant createdAt, Instant expiresAt, Instant revokedAt) {
+        this.account = account;
         this.tokenHash = tokenHash;
         this.createdAt = createdAt;
         this.expiresAt = expiresAt;
@@ -41,8 +41,8 @@ public class RefreshToken {
         return id;
     }
 
-    public long getAccountId() {
-        return accountId;
+    public Account getLinkedAccount() {
+        return account;
     }
 
     public Instant getCreatedAt() {
