@@ -12,6 +12,7 @@
         <module>article-service</module>
         <module>user-service</module>
         <module>auth-service</module>
+        <module>authorization-server</module>
     </modules>
     <properties>
         <maven.compiler.source>26</maven.compiler.source>

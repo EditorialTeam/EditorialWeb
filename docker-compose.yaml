@@ -1,4 +1,3 @@
-
 services:
   postgres-articles:
     image: postgres:18.6
@@ -57,6 +56,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-users:5432/editorial_users
       SPRING_DATASOURCE_USERNAME: editorial
       SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
+      JWT_JWK_SET_URI: http://authorization-server:8080/oauth2/jwks
     depends_on:
       postgres-users:
         condition: service_healthy
@@ -88,6 +88,7 @@ services:
         APP_JWT_KEYS_DIRECTORY: /app/keys
         OAUTH_CLIENT_SECRETS: /app/secrets
         USER_SERVICE_URL: http://user-service:8080
+        AUTH_SERVER_URL: http://authorization-server:8080
       volumes:
         - auth_keys:/app/keys:ro
         - oauth_secrets:/app/secrets:ro
@@ -106,7 +107,7 @@ services:
       - oauth_secrets:/app/secrets:ro
     environment:
       APP_JWT_KEYS_DIRECTORY: /app/keys
-      OAUTH_CLIENT_SECRET: /app/secrets
+      OAUTH_CLIENT_SECRETS: /app/secrets
     depends_on:
       secrets-gen:
         condition: service_completed_successfully
