@@ -1,5 +1,6 @@
 package com.editorial.auth.service;
 
+import com.editorial.auth.client.UserServiceClient;
 import com.editorial.auth.dto.LoginRequest;
 import com.editorial.auth.dto.LoginResponse;
 import com.editorial.auth.dto.RegisterAccountRequest;
@@ -20,10 +21,12 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AccountRepository repository;
     private final JwtService jwtService;
-    public AuthService(PasswordEncoder passwordEncoder, AccountRepository repository, JwtService jwtService) {
+    private final UserServiceClient serviceClient;
+    public AuthService(PasswordEncoder passwordEncoder, AccountRepository repository, JwtService jwtService, UserServiceClient serviceClient) {
         this.passwordEncoder = passwordEncoder;
         this.repository = repository;
         this.jwtService = jwtService;
+        this.serviceClient = serviceClient;
     }
 
     @Transactional
@@ -39,6 +42,8 @@ public class AuthService {
         String hash = passwordEncoder.encode(password);
 
         Account saved = repository.save(new Account(username, email, hash, AccountRole.USER));
+
+        serviceClient.createUserProfile(saved.getId(), saved.getUsername());
 
         return new AccountRegisterResponse(username, email, saved.getCreatedAt());
     }
