@@ -34,8 +34,6 @@ services:
   article-service:
     build:
       context: ./article-service
-    ports:
-      - "8081:8080"
     environment:
       SERVER_PORT: 8080
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-articles:5432/editorial_articles
@@ -49,8 +47,6 @@ services:
   user-service:
     build:
       context: ./user-service
-    ports:
-      - "8082:8080"
     environment:
       SERVER_PORT: 8080
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-users:5432/editorial_users
@@ -79,8 +75,6 @@ services:
 
   auth-service:
       build: ./auth-service
-      ports:
-        - "8083:8080"
       environment:
         SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/editorial_auth
         SPRING_DATASOURCE_USERNAME: editorial
@@ -100,8 +94,6 @@ services:
 
   authorization-server:
     build: ./authorization-server
-    ports:
-      - "8084:8080"
     volumes:
       - oauth_keys:/app/keys:ro
       - oauth_secrets:/app/secrets:ro
@@ -111,6 +103,13 @@ services:
     depends_on:
       secrets-gen:
         condition: service_completed_successfully
+
+  gateway-service:
+    build: ./gateway-service
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
 
   secrets-gen:
     image: alpine/openssl:latest
