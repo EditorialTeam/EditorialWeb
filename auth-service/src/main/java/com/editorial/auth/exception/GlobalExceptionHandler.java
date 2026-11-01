@@ -19,4 +19,10 @@ public class GlobalExceptionHandler {
     public ApiError handleInvalidCredentials() {
         return new ApiError("INVALID_CREDENTIALS", "Invalid email or password", null);
     }
+
+    @ExceptionHandler(InvalidRefreshTokenException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ApiError handleRefreshTokenExpired() {
+        return new ApiError("INVALID_REFRESH_TOKEN", "Refresh token is invalid, need to re-login", null);
+    }
 }
