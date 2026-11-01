@@ -65,4 +65,13 @@ public class RefreshTokenService {
             throw new InvalidRefreshTokenException("Refresh token expired");
         }
     }
+
+    @Transactional
+    public void removeRefreshToken(String oldRefreshToken) {
+        String oldHash = org.apache.commons.codec.digest.DigestUtils.sha256Hex(oldRefreshToken);
+
+        RefreshToken oldToken = tokenRepository.findByTokenHash(oldHash).orElseThrow(InvalidRefreshTokenException::new);
+
+        tokenRepository.delete(oldToken);
+    }
 }

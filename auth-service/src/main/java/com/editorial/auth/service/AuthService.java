@@ -47,7 +47,7 @@ public class AuthService {
         return new AccountRegisterResponse(username, email, saved.getCreatedAt());
     }
 
-    @Transactional(readOnly=true)
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         String email = request.email().strip().toLowerCase(Locale.ROOT);
         String password = request.password();
@@ -68,5 +68,10 @@ public class AuthService {
         String refreshToken = tokenServiceUpdateToken.refreshToken();
 
         return new RefreshResponse(jwtService.generateAccessToken(account), refreshToken);
+    }
+
+    @Transactional
+    public void logout(LogoutRequest request) {
+        tokenService.removeRefreshToken(request.oldRefreshToken());
     }
 }

@@ -76,6 +76,7 @@ services:
   auth-service:
       build: ./auth-service
       environment:
+        SERVER_PORT: 8080
         SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/editorial_auth
         SPRING_DATASOURCE_USERNAME: editorial
         SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
