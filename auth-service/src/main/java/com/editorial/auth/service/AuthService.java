@@ -72,6 +72,6 @@ public class AuthService {
 
     @Transactional
     public void logout(LogoutRequest request) {
-        tokenService.removeRefreshToken(request.oldRefreshToken());
+        tokenService.removeRefreshToken(request.refreshToken());
     }
 }

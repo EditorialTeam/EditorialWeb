@@ -15,6 +15,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ApiError handleValidationError(MethodArgumentNotValidException e) {
         String code = "Validation error";
