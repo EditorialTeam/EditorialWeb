@@ -1,10 +1,7 @@
 package com.editorial.auth.service;
 
 import com.editorial.auth.client.UserServiceClient;
-import com.editorial.auth.dto.LoginRequest;
-import com.editorial.auth.dto.LoginResponse;
-import com.editorial.auth.dto.RegisterAccountRequest;
-import com.editorial.auth.dto.AccountRegisterResponse;
+import com.editorial.auth.dto.*;
 import com.editorial.auth.exception.InvalidCredentialsException;
 import com.editorial.auth.exception.AccountAlreadyExistsException;
 import com.editorial.auth.model.Account;
@@ -22,11 +19,13 @@ public class AuthService {
     private final AccountRepository repository;
     private final JwtService jwtService;
     private final UserServiceClient serviceClient;
-    public AuthService(PasswordEncoder passwordEncoder, AccountRepository repository, JwtService jwtService, UserServiceClient serviceClient) {
+    private final RefreshTokenService tokenService;
+    public AuthService(PasswordEncoder passwordEncoder, AccountRepository repository, JwtService jwtService, UserServiceClient serviceClient, RefreshTokenService tokenService) {
         this.passwordEncoder = passwordEncoder;
         this.repository = repository;
         this.jwtService = jwtService;
         this.serviceClient = serviceClient;
+        this.tokenService = tokenService;
     }
 
     @Transactional
@@ -48,7 +47,7 @@ public class AuthService {
         return new AccountRegisterResponse(username, email, saved.getCreatedAt());
     }
 
-    @Transactional(readOnly=true)
+    @Transactional
     public LoginResponse login(LoginRequest request) {
         String email = request.email().strip().toLowerCase(Locale.ROOT);
         String password = request.password();
@@ -56,9 +55,23 @@ public class AuthService {
         Account foundAccount = repository.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
 
         if (passwordEncoder.matches(password, foundAccount.getPasswordHash())) {
-            return new LoginResponse(jwtService.generateAccessToken(foundAccount), "Bearer", 900L);
+            return new LoginResponse(tokenService.generateRefreshToken(foundAccount), jwtService.generateAccessToken(foundAccount), "Bearer", 900L);
         } else {
             throw new InvalidCredentialsException();
         }
+    }
+
+    @Transactional
+    public RefreshResponse refresh(RefreshRequest request) {
+        UpdateRefreshTokenTokenServiceResponse tokenServiceUpdateToken = tokenService.updateRefreshToken(request.refreshToken());
+        Account account = tokenServiceUpdateToken.account();
+        String refreshToken = tokenServiceUpdateToken.refreshToken();
+
+        return new RefreshResponse(jwtService.generateAccessToken(account), refreshToken);
+    }
+
+    @Transactional
+    public void logout(LogoutRequest request) {
+        tokenService.removeRefreshToken(request.oldRefreshToken());
     }
 }

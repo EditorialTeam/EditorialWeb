@@ -1,11 +1,9 @@
 package com.editorial.auth.controller;
 
-import com.editorial.auth.dto.LoginRequest;
-import com.editorial.auth.dto.LoginResponse;
-import com.editorial.auth.dto.RegisterAccountRequest;
-import com.editorial.auth.dto.AccountRegisterResponse;
+import com.editorial.auth.dto.*;
 import com.editorial.auth.service.AuthService;
 import jakarta.validation.Valid;
+import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,5 +24,16 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         return ResponseEntity.ok(service.login(request));
+    }
+
+    @PostMapping("/refresh")
+    public ResponseEntity<RefreshResponse> refresh(@RequestBody RefreshRequest request) {
+        return ResponseEntity.ok(service.refresh(request));
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logout(@RequestBody LogoutRequest request) {
+        service.logout(request);
     }
 }
