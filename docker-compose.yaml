@@ -52,6 +52,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-users:5432/editorial_users
       SPRING_DATASOURCE_USERNAME: editorial
       SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       JWT_JWK_SET_URI: http://authorization-server:8080/oauth2/jwks
     depends_on:
       postgres-users:
@@ -80,6 +81,7 @@ services:
         SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/editorial_auth
         SPRING_DATASOURCE_USERNAME: editorial
         SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
+        SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
         APP_JWT_KEYS_DIRECTORY: /app/keys
         OAUTH_CLIENT_SECRETS: /app/secrets
         USER_SERVICE_URL: http://user-service:8080
@@ -159,6 +161,32 @@ services:
       - oauth_secrets:/secrets
     restart: "no"
 
+  kafka:
+    image: apache/kafka:4.4.0
+    container_name: kafka
+    hostname: kafka
+    restart: unless-stopped
+
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+
 volumes:
   articles_pgdata:
   users_pgdata:
@@ -166,3 +194,4 @@ volumes:
   auth_keys:
   oauth_keys:
   oauth_secrets:
+  kafka_data:
