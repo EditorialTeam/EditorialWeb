@@ -36,7 +36,7 @@ public class JwtService {
                 .subject(account.getId().toString())
                 .audience(List.of("editorial-api"))
                 .issuedAt(issuedAt)
-                .expiresAt(issuedAt.plusSeconds(900))
+                .expiresAt(issuedAt.plusSeconds(1800))
                 .claim("role", account.getRole().name())
                  .build();
 

@@ -1,6 +1,8 @@
 package com.editorial.auth.controller;
 
 import com.editorial.auth.dto.*;
+import com.editorial.auth.producer.RegistrationEventProducer;
+import com.editorial.auth.producer.event.ProfileCreationRequested;
 import com.editorial.auth.service.AuthService;
 import jakarta.validation.Valid;
 import org.apache.coyote.Response;
@@ -12,8 +14,10 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/auth")
 public class AuthController {
     private final AuthService service;
-    public AuthController(AuthService service) {
+    private final RegistrationEventProducer testKafka;
+    public AuthController(AuthService service, RegistrationEventProducer testKafka) {
         this.service = service;
+        this.testKafka = testKafka;
     }
 
     @PostMapping("/register")
@@ -35,5 +39,10 @@ public class AuthController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void logout(@RequestBody LogoutRequest request) {
         service.logout(request);
+    }
+
+    @PostMapping("/internal/kafka-test")
+    public void setTestKafka(@RequestBody ProfileCreationRequested request) {
+        testKafka.sendProfileCreationEvent(request);
     }
 }
