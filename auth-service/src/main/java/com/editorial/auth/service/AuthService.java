@@ -64,7 +64,6 @@ public class AuthService {
 
         outboxRepository.save(new OutboxEvent(uuid, saved.getId(), "PROFILE_CREATION_REQUESTED", objectMapper.valueToTree(registrationRequest)));
 
-        outboxPublisher.publish();
         return new AccountRegisterResponse(username, email, saved.getCreatedAt());
     }
 

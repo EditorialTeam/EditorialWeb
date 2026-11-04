@@ -32,4 +32,20 @@ public class User {
         this.accountId = accountId;
         this.displayName = displayName;
     }
+
+    public long getAccountId() {
+        return accountId;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public long getProfileId() {
+        return id;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
 }
