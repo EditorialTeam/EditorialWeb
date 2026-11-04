@@ -40,9 +40,4 @@ public class AuthController {
     public void logout(@RequestBody LogoutRequest request) {
         service.logout(request);
     }
-
-    @PostMapping("/internal/kafka-test")
-    public void setTestKafka(@RequestBody ProfileCreationRequested request) {
-        testKafka.sendProfileCreationEvent(request);
-    }
 }
