@@ -1,31 +1,48 @@
 package com.editorial.auth.service;
 
-import com.editorial.auth.client.UserServiceClient;
 import com.editorial.auth.dto.*;
 import com.editorial.auth.exception.InvalidCredentialsException;
 import com.editorial.auth.exception.AccountAlreadyExistsException;
 import com.editorial.auth.model.Account;
 import com.editorial.auth.model.AccountRole;
+import com.editorial.auth.model.AccountStatus;
+import com.editorial.auth.model.OutboxEvent;
+import com.editorial.auth.producer.event.ProfileCreationRequested;
 import com.editorial.auth.repository.AccountRepository;
+import com.editorial.auth.repository.OutboxRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import java.util.Locale;
+import java.util.UUID;
 
 @Service
 public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AccountRepository repository;
     private final JwtService jwtService;
-    private final UserServiceClient serviceClient;
     private final RefreshTokenService tokenService;
-    public AuthService(PasswordEncoder passwordEncoder, AccountRepository repository, JwtService jwtService, UserServiceClient serviceClient, RefreshTokenService tokenService) {
+    private final OutboxRepository outboxRepository;
+    private final ObjectMapper objectMapper;
+    private final OutboxPublisher outboxPublisher;
+    public AuthService(
+            PasswordEncoder passwordEncoder,
+            AccountRepository repository,
+            JwtService jwtService,
+            RefreshTokenService tokenService,
+            OutboxRepository outboxRepository,
+            ObjectMapper objectMapper,
+            OutboxPublisher outboxPublisher
+    ) {
         this.passwordEncoder = passwordEncoder;
         this.repository = repository;
         this.jwtService = jwtService;
-        this.serviceClient = serviceClient;
         this.tokenService = tokenService;
+        this.outboxRepository = outboxRepository;
+        this.objectMapper = objectMapper;
+        this.outboxPublisher = outboxPublisher;
     }
 
     @Transactional
@@ -40,10 +57,14 @@ public class AuthService {
 
         String hash = passwordEncoder.encode(password);
 
-        Account saved = repository.save(new Account(username, email, hash, AccountRole.USER));
+        Account saved = repository.save(new Account(username, email, hash, AccountRole.USER, AccountStatus.PENDING));
 
-        serviceClient.createUserProfile(saved.getId(), saved.getUsername());
+        UUID uuid = UUID.randomUUID();
+        ProfileCreationRequested registrationRequest = new ProfileCreationRequested(uuid, saved.getId(), username);
 
+        outboxRepository.save(new OutboxEvent(uuid, saved.getId(), "PROFILE_CREATION_REQUESTED", objectMapper.valueToTree(registrationRequest)));
+
+        outboxPublisher.publish();
         return new AccountRegisterResponse(username, email, saved.getCreatedAt());
     }
 
@@ -54,7 +75,7 @@ public class AuthService {
 
         Account foundAccount = repository.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
 
-        if (passwordEncoder.matches(password, foundAccount.getPasswordHash())) {
+        if (passwordEncoder.matches(password, foundAccount.getPasswordHash()) && foundAccount.getStatus() != AccountStatus.PENDING) {
             return new LoginResponse(tokenService.generateRefreshToken(foundAccount), jwtService.generateAccessToken(foundAccount), "Bearer", 900L);
         } else {
             throw new InvalidCredentialsException();

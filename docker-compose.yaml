@@ -53,7 +53,6 @@ services:
       SPRING_DATASOURCE_USERNAME: editorial
       SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
-      JWT_JWK_SET_URI: http://authorization-server:8080/oauth2/jwks
     depends_on:
       postgres-users:
         condition: service_healthy
@@ -83,12 +82,8 @@ services:
         SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
         SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
         APP_JWT_KEYS_DIRECTORY: /app/keys
-        OAUTH_CLIENT_SECRETS: /app/secrets
-        USER_SERVICE_URL: http://user-service:8080
-        AUTH_SERVER_URL: http://authorization-server:8080
       volumes:
         - auth_keys:/app/keys:ro
-        - oauth_secrets:/app/secrets:ro
       depends_on:
         postgres-auth:
           condition: service_healthy
