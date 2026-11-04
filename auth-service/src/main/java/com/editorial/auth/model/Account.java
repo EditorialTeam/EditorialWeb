@@ -27,6 +27,9 @@ public class Account {
     @Column(nullable = false)
     private AccountRole role;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable=false)
+    private AccountStatus status;
 
     @PrePersist
     protected void onCreate() {
@@ -38,11 +41,12 @@ public class Account {
     protected Account() {
     }
 
-    public Account(String username, String email, String passwordHash, AccountRole role) {
+    public Account(String username, String email, String passwordHash, AccountRole role, AccountStatus status) {
         this.username = username;
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
+        this.status = status;
     }
 
     public Long getId() {
@@ -69,6 +73,8 @@ public class Account {
         return role;
     }
 
+    public AccountStatus getStatus() {return status;}
+
     public void setUsername(String username) {
         this.username = username;
     }
@@ -80,4 +86,6 @@ public class Account {
     public void setRole(AccountRole role) {
         this.role = role;
     }
+
+    public void setStatus(AccountStatus status) {this.status = status;}
 }
