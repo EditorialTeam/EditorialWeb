@@ -21,6 +21,7 @@ public class RegistrationEventConsumer {
 
     @KafkaListener(topics = TOPIC)
     public void receiveRegistrationEvent(@Payload ProfileCreationRequested message  ) {
+        log.info("Trying to register user profile...");
         service.add(new RegisterUserProfileRequest(message.accountId(), message.displayName()));
         log.info("Received message: {log_info}" + message);
     }

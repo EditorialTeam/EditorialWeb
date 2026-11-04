@@ -26,15 +26,13 @@ public class AuthService {
     private final RefreshTokenService tokenService;
     private final OutboxRepository outboxRepository;
     private final ObjectMapper objectMapper;
-    private final OutboxPublisher outboxPublisher;
     public AuthService(
             PasswordEncoder passwordEncoder,
             AccountRepository repository,
             JwtService jwtService,
             RefreshTokenService tokenService,
             OutboxRepository outboxRepository,
-            ObjectMapper objectMapper,
-            OutboxPublisher outboxPublisher
+            ObjectMapper objectMapper
     ) {
         this.passwordEncoder = passwordEncoder;
         this.repository = repository;
@@ -42,7 +40,6 @@ public class AuthService {
         this.tokenService = tokenService;
         this.outboxRepository = outboxRepository;
         this.objectMapper = objectMapper;
-        this.outboxPublisher = outboxPublisher;
     }
 
     @Transactional
@@ -64,7 +61,6 @@ public class AuthService {
 
         outboxRepository.save(new OutboxEvent(uuid, saved.getId(), "PROFILE_CREATION_REQUESTED", objectMapper.valueToTree(registrationRequest)));
 
-        outboxPublisher.publish();
         return new AccountRegisterResponse(username, email, saved.getCreatedAt());
     }
 
