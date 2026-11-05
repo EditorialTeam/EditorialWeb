@@ -70,7 +70,6 @@ public class ArticleService {
         Article response = repository.findById(id).orElseThrow(ArticleNotFoundException::new);
 
         checkIfAccessible(response, accountId, role);
-
         if (request.title() != null) response.setTitle(request.title());
         if (request.content() != null) response.setContent(request.content());
         return response;

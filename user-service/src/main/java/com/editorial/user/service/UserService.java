@@ -1,6 +1,8 @@
 package com.editorial.user.service;
 
 import com.editorial.user.dto.GetUserProfileResponse;
+import com.editorial.user.dto.PatchProfileRequest;
+import com.editorial.user.dto.PatchProfileResponse;
 import com.editorial.user.dto.RegisterUserProfileRequest;
 import com.editorial.user.exception.UserNotFoundException;
 import com.editorial.user.exception.UserProfileAlreadyExists;
@@ -9,10 +11,13 @@ import com.editorial.user.model.User;
 import com.editorial.user.producer.event.RegisteredProfile;
 import com.editorial.user.repository.OutboxEventsRepository;
 import com.editorial.user.repository.UserRepository;
+import jakarta.annotation.Nullable;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.sound.midi.Patch;
 import java.util.UUID;
 
 @Service
@@ -34,7 +39,7 @@ public class UserService {
         if (repository.existsByAccountId(request.accountId())) return;
         UUID uuid = UUID.randomUUID();
 
-        User savedUser = repository.save(new User(request.accountId(), request.displayName()));
+        User savedUser = repository.save(new User(request.accountId(), request.username()));
         RegisteredProfile kafkaPayload = new RegisteredProfile(uuid, savedUser.getAccountId());
         outboxRepository.save(new OutboxEvent(uuid, savedUser.getAccountId(), "PROFILE_CREATED", objectMapper.valueToTree(kafkaPayload)));
         //return savedUser;
@@ -42,6 +47,26 @@ public class UserService {
     @Transactional(readOnly=true)
     public GetUserProfileResponse getUserProfile(Long accountId) {
         User foundProfile = repository.findByAccountId(accountId).orElseThrow(UserNotFoundException::new);
-        return new GetUserProfileResponse(foundProfile.getDisplayName(), foundProfile.getCreatedAt());
+        return new GetUserProfileResponse(foundProfile.getUsername(), foundProfile.getDisplayName(), foundProfile.getCreatedAt());
+    }
+
+    @Transactional
+    public PatchProfileResponse editUserProfile(Long accountId, PatchProfileRequest request) {
+        User foundProfile = repository.findByAccountId(accountId).orElseThrow(UserNotFoundException::new);
+
+        String displayName = request.displayName();
+        String profileDescription = request.profileDescription();
+
+        if (displayName != null) {
+            foundProfile.setDisplayName(displayName);
+        }
+
+        if (profileDescription != null) {
+            foundProfile.setProfileDescription(profileDescription);
+        }
+
+        User savedUser = repository.save(foundProfile);
+
+        return new PatchProfileResponse(savedUser.getDisplayName(), savedUser.getProfileDescription());
     }
 }
