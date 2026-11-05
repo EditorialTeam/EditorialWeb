@@ -8,9 +8,10 @@
 | --- | --- | --- |
 | `/api/auth/**` | `http://auth-service:8080` | [auth-service](../auth-service/README.md) |
 | `/api/articles/**` | `http://article-service:8080` | [article-service](../article-service/README.md) |
+| `/api/users/**` | `http://user-service:8080` | [user-service](../user-service/README.md) |
 
 Префиксы путей сохраняются. Собственных REST-методов нет; тела запросов, ответы и статусы определяются целевым сервисом.
 
-Gateway пропускает запросы без проверки JWT и ролей. Для защищённых методов передавайте `Authorization: Bearer <accessToken>` — проверку выполняет article-service.
+Для защищённых методов передавайте `Authorization: Bearer <accessToken>`. Подпись, срок действия и параметры JWT проверяет целевой сервис. Права на запись статей проверяет article-service, а user-service выбирает профиль по `sub` токена.
 
-Маршрутов к `/internal/users`, `/oauth2/token`, `/oauth2/jwks` и `/.well-known/jwks.json` нет. Эти адреса используются напрямую внутри сети Compose.
+User-service и article-service получают публичные ключи напрямую у auth-service по адресу `http://auth-service:8080/.well-known/jwks.json` внутри сети Compose.

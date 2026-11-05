@@ -1,14 +1,18 @@
-```
--Java 21
--Spring Boot 4.1.1
--Maven
--PostgreSQL
--Docker
-```
+[Документация API и обзор изменений](editorial-docs/README.md)
 
-``` .env
+## Локальный запуск
+
+Укажите пароли локальных баз PostgreSQL в файле `.env` рядом с `docker-compose.yaml`.
+
+```dotenv
 ARTICLE_DB_PASSWORD=
 USER_DB_PASSWORD=
 AUTH_DB_PASSWORD=
 ```
-To build just run: docker compose up -d --build
+
+Из корня проекта запустите docker compose команду: 
+
+```sh
+docker compose up -d --build 
+```
+
