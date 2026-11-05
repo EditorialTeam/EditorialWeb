@@ -13,11 +13,16 @@ public class User {
     @Column(name="account_id", nullable = false, unique = true)
     private Long accountId;
 
-    @Column(name="display_name", nullable = false, length=100)
+    @Column(nullable = false, columnDefinition = "text")
+    private String username;
+
+    @Column(name = "display_name", columnDefinition = "text")
     private String displayName;
 
     @Column(name="created_at", nullable=false)
     private Instant createdAt;
+
+
 
     @PrePersist
     protected void onCreated() {
@@ -28,9 +33,9 @@ public class User {
 
     protected User() {}
 
-    public User(Long accountId, String displayName) {
+    public User(Long accountId, String username) {
         this.accountId = accountId;
-        this.displayName = displayName;
+        this.username = username;
     }
 
     public long getAccountId() {
@@ -43,6 +48,10 @@ public class User {
 
     public long getProfileId() {
         return id;
+    }
+
+    public String getUsername() {
+        return username;
     }
 
     public String getDisplayName() {

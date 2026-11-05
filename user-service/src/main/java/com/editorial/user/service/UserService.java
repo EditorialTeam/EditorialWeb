@@ -34,7 +34,7 @@ public class UserService {
         if (repository.existsByAccountId(request.accountId())) return;
         UUID uuid = UUID.randomUUID();
 
-        User savedUser = repository.save(new User(request.accountId(), request.displayName()));
+        User savedUser = repository.save(new User(request.accountId(), request.username()));
         RegisteredProfile kafkaPayload = new RegisteredProfile(uuid, savedUser.getAccountId());
         outboxRepository.save(new OutboxEvent(uuid, savedUser.getAccountId(), "PROFILE_CREATED", objectMapper.valueToTree(kafkaPayload)));
         //return savedUser;
@@ -42,6 +42,6 @@ public class UserService {
     @Transactional(readOnly=true)
     public GetUserProfileResponse getUserProfile(Long accountId) {
         User foundProfile = repository.findByAccountId(accountId).orElseThrow(UserNotFoundException::new);
-        return new GetUserProfileResponse(foundProfile.getDisplayName(), foundProfile.getCreatedAt());
+        return new GetUserProfileResponse(foundProfile.getUsername(), foundProfile.getDisplayName(), foundProfile.getCreatedAt());
     }
 }
