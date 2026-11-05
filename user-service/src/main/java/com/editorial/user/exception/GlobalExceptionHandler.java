@@ -16,4 +16,13 @@ public class GlobalExceptionHandler {
 
         return new ApiError(code, message, null);
     }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiError handleUserNotFound(UserNotFoundException e) {
+        String code = "USER_NOT_FOUND";
+        String message = "User profile couldn't be found";
+
+        return new ApiError(code, message, null);
+    }
 }
