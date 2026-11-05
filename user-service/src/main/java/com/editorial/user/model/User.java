@@ -19,8 +19,12 @@ public class User {
     @Column(name = "display_name", columnDefinition = "text")
     private String displayName;
 
+    @Column(name="profile_description", columnDefinition = "text")
+    private String profileDescription;
+
     @Column(name="created_at", nullable=false)
     private Instant createdAt;
+
 
 
 
@@ -36,6 +40,11 @@ public class User {
     public User(Long accountId, String username) {
         this.accountId = accountId;
         this.username = username;
+    }
+
+    public User(String displayName, String profileDescription) {
+        this.displayName = displayName;
+        this.profileDescription = profileDescription;
     }
 
     public long getAccountId() {
@@ -56,5 +65,17 @@ public class User {
 
     public String getDisplayName() {
         return displayName;
+    }
+
+    public String getProfileDescription() {
+        return profileDescription;
+    }
+
+    public void setProfileDescription(String profileDescription) {
+        this.profileDescription = profileDescription;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
     }
 }
