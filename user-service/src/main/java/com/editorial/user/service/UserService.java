@@ -12,6 +12,8 @@ import com.editorial.user.producer.event.RegisteredProfile;
 import com.editorial.user.repository.OutboxEventsRepository;
 import com.editorial.user.repository.UserRepository;
 import jakarta.annotation.Nullable;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,7 +49,18 @@ public class UserService {
     @Transactional(readOnly=true)
     public GetUserProfileResponse getUserProfile(Long accountId) {
         User foundProfile = repository.findByAccountId(accountId).orElseThrow(UserNotFoundException::new);
-        return new GetUserProfileResponse(foundProfile.getUsername(), foundProfile.getDisplayName(), foundProfile.getCreatedAt());
+        return new GetUserProfileResponse(foundProfile.getUsername(), foundProfile.getDisplayName(), foundProfile.getCreatedAt(), foundProfile.getAccountId());
+    }
+
+    @Transactional(readOnly = true)
+    public Page<GetUserProfileResponse> getProfiles(Pageable request) {
+        return repository.findAll(request).map(
+                account -> new GetUserProfileResponse(
+                        account.getUsername(),
+                        account.getDisplayName(),
+                        account.getCreatedAt(),
+                        account.getAccountId())
+        );
     }
 
     @Transactional

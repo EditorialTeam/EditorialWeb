@@ -71,7 +71,11 @@ public class AuthService {
 
         Account foundAccount = repository.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
 
-        if (passwordEncoder.matches(password, foundAccount.getPasswordHash()) && foundAccount.getStatus() != AccountStatus.PENDING) {
+        if (foundAccount.getStatus() == AccountStatus.PENDING) {
+
+        }
+
+        if (passwordEncoder.matches(password, foundAccount.getPasswordHash())) {
             return new LoginResponse(tokenService.generateRefreshToken(foundAccount), jwtService.generateAccessToken(foundAccount), "Bearer", 900L);
         } else {
             throw new InvalidCredentialsException();
