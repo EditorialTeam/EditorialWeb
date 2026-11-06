@@ -6,6 +6,8 @@ import com.editorial.article.dto.UpdateArticleRequest;
 import com.editorial.article.exception.ArticleNotFoundException;
 import com.editorial.article.model.Article;
 import com.editorial.article.repository.ArticleRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +32,8 @@ public class ArticleService {
 
 
     @Transactional(readOnly = true)
-    public List<Article> getAll() {
-        return repository.findAll();
+    public Page<Article> getAll(Pageable request) {
+        return repository.findAll(request);
     }
 
     @Transactional(readOnly = true)

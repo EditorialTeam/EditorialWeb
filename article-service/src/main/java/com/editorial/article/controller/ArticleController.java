@@ -6,6 +6,11 @@ import com.editorial.article.dto.UpdateArticleRequest;
 import com.editorial.article.model.Article;
 import com.editorial.article.service.ArticleService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -24,8 +29,12 @@ public class ArticleController {
     }
 
     @GetMapping
-    public List<Article> getArticles() {
-        return service.getAll();
+    public List<Article> getArticles(@Min(0) @RequestParam(name="page", defaultValue = "0") int page,
+                                     @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size) {
+        Pageable request = PageRequest.of(page, size,
+                Sort.by("id").ascending());
+
+        service
     }
 
     @GetMapping("/{id}")
@@ -51,12 +60,12 @@ public class ArticleController {
     @DeleteMapping("/{id}")
     public void deleteArticleById(@PathVariable long id, @AuthenticationPrincipal Jwt jwt)
     {
-        service.delete(id, Long.parseLong(jwt.getSubject()), jwt.getClaimAsString("role"));
+        service.delete(id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())), jwt.getClaimAsString("role"));
     }
 
     @PatchMapping("/{id}")
     public ResponseEntity<Article> patchArticleById(@Valid @RequestBody PatchArticleRequest request, @PathVariable long id,
                                                     @AuthenticationPrincipal Jwt jwt) {
-        return ResponseEntity.ok(service.patchById(request, id, Long.parseLong(jwt.getSubject()), jwt.getClaimAsString("role")));
+        return ResponseEntity.ok(service.patchById(request, id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())), jwt.getClaimAsString("role")));
     }
 }
