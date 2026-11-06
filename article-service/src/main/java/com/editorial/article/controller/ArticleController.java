@@ -8,6 +8,7 @@ import com.editorial.article.service.ArticleService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -29,12 +30,12 @@ public class ArticleController {
     }
 
     @GetMapping
-    public List<Article> getArticles(@Min(0) @RequestParam(name="page", defaultValue = "0") int page,
-                                     @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size) {
+    public ResponseEntity<Page<Article>> getArticles(@Min(0) @RequestParam(name="page", defaultValue = "0") int page,
+                                                     @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size) {
         Pageable request = PageRequest.of(page, size,
                 Sort.by("id").ascending());
 
-        service
+        return ResponseEntity.ok(service.getAll(request));
     }
 
     @GetMapping("/{id}")
