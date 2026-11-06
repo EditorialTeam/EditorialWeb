@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
         return new ApiError("ACCOUNT_STILL_PENDING", "Couldn't log you in because user profile hasn't been created yet", null);
     }
 
-    @ExceptionHandler(AccountStillPendingException.class)
+    @ExceptionHandler(AccountNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ApiError handleAccountNotFound(AccountNotFoundException e) {
         return new ApiError("ACCOUNT_NOT_FOUND", "Couldn't find such account", null);

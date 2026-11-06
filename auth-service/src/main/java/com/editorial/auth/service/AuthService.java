@@ -1,6 +1,7 @@
 package com.editorial.auth.service;
 
 import com.editorial.auth.dto.*;
+import com.editorial.auth.exception.AccountStillPendingException;
 import com.editorial.auth.exception.InvalidCredentialsException;
 import com.editorial.auth.exception.AccountAlreadyExistsException;
 import com.editorial.auth.model.Account;
@@ -72,7 +73,7 @@ public class AuthService {
         Account foundAccount = repository.findByEmail(email).orElseThrow(InvalidCredentialsException::new);
 
         if (foundAccount.getStatus() == AccountStatus.PENDING) {
-
+            throw new AccountStillPendingException();
         }
 
         if (passwordEncoder.matches(password, foundAccount.getPasswordHash())) {

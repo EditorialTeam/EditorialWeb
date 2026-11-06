@@ -31,8 +31,8 @@ public class AdminUserController {
         return ResponseEntity.ok(service.getProfiles(request));
     }
 
-    @PatchMapping("/{id}")
-    public ResponseEntity<PatchProfileResponse> editProfile(@PathVariable Long accountId, @RequestBody PatchProfileRequest request) {
+    @PatchMapping("/{accountId}")
+    public ResponseEntity<PatchProfileResponse> editProfile(@PathVariable long accountId, @RequestBody PatchProfileRequest request) {
         return ResponseEntity.ok(service.editUserProfile(accountId, request));
     }
 }

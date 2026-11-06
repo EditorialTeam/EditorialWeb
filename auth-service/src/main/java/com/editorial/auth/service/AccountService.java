@@ -1,8 +1,11 @@
 package com.editorial.auth.service;
 
+import com.editorial.auth.dto.EditAccountRequest;
+import com.editorial.auth.dto.EditAccountResponse;
 import com.editorial.auth.dto.GetAccountsResponse;
 import com.editorial.auth.exception.AccountNotFoundException;
 import com.editorial.auth.model.Account;
+import com.editorial.auth.model.AccountRole;
 import com.editorial.auth.repository.AccountRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -41,5 +44,22 @@ public class AccountService {
                 foundAccount.getUsername(),
                 foundAccount.getCreatedAt(),
                 foundAccount.getRole().name());
+    }
+
+    @Transactional
+    public EditAccountResponse editAccount(Long accountId, EditAccountRequest request) {
+        Account foundAccount = repository.findById(accountId).orElseThrow(AccountNotFoundException::new);
+
+        String username = request.username();
+        String email = request.email();
+        String role = request.role();
+
+        if (username != null) foundAccount.setUsername(username);
+        if (email != null) foundAccount.setEmail(email);
+        if (role != null) foundAccount.setRole(AccountRole.valueOf(role));
+
+        Account savedUser = repository.save(foundAccount);
+
+        return new EditAccountResponse(savedUser.getEmail(), savedUser.getUsername(), savedUser.getRole().name());
     }
 }

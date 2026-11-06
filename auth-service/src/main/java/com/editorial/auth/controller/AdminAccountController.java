@@ -1,5 +1,7 @@
 package com.editorial.auth.controller;
 
+import com.editorial.auth.dto.EditAccountRequest;
+import com.editorial.auth.dto.EditAccountResponse;
 import com.editorial.auth.dto.GetAccountsResponse;
 import com.editorial.auth.service.AccountService;
 import jakarta.validation.constraints.Max;
@@ -30,11 +32,14 @@ public class AdminAccountController {
         return ResponseEntity.ok(service.getAccounts(request));
     }
 
-    @GetMapping("/{id}")
-    public ResponseEntity<GetAccountsResponse> getAccountById(@PathVariable Long accountId) {
+    @GetMapping("/{accountId}")
+    public ResponseEntity<GetAccountsResponse> getAccountById(@PathVariable long accountId) {
         return ResponseEntity.ok(service.getAccountById(accountId));
     }
 
-    //@PatchMapping("/{id}")
-
+    @PatchMapping("/{accountId}")
+    public ResponseEntity<EditAccountResponse> editAccount(@PathVariable long accountId,
+                                                           @RequestBody EditAccountRequest request) {
+        return ResponseEntity.ok(service.editAccount(accountId, request));
+    }
 }
