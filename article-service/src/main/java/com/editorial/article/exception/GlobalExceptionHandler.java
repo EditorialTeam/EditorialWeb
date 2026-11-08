@@ -58,4 +58,15 @@ public class GlobalExceptionHandler {
 
         return new ApiError(code, message, null);
     }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(IncorrectArticleStatusException.class)
+    public ApiError handleIncorrectStatus(IncorrectArticleStatusException e) {
+        String code = "INCORRECT_ARTICLE_STATUS";
+        String message = "Can't submit for review";
+
+        return new ApiError(code, message, null);
+    }
+
+
 }

@@ -47,7 +47,7 @@ public class RefreshTokenService {
     }
 
     @Transactional
-    @Lock(LockModeType.PESSIMISTIC_WRITE)
+
     public UpdateRefreshTokenTokenServiceResponse updateRefreshToken(String refreshTokenOld) {
         String oldHash = org.apache.commons.codec.digest.DigestUtils.sha256Hex(refreshTokenOld);
 

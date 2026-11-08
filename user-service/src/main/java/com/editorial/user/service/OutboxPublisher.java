@@ -19,6 +19,7 @@ public class OutboxPublisher {
     private final OutboxEventsRepository outboxRepository;
     private final ObjectMapper objectMapper;
     private final RegisteredEventProducer producer;
+
     public OutboxPublisher(OutboxEventsRepository repository, ObjectMapper objectMapper, RegisteredEventProducer producer) {
         this.outboxRepository = repository;
         this.objectMapper = objectMapper;

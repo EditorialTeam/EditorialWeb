@@ -26,7 +26,7 @@ public class SecurityConfig {
                                 "/api/auth/refresh",
                                 "/api/auth/logout").permitAll()
                         .requestMatchers(HttpMethod.GET,"/.well-known/jwks.json").permitAll()
-                        .requestMatchers("/api/admin/accounts").hasRole("ADMIN")
+                        .requestMatchers("/api/admin/accounts", "/api/admin/accounts/**").hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)));
 

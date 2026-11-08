@@ -8,6 +8,7 @@ import com.editorial.article.service.ArticleService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -68,5 +69,12 @@ public class ArticleController {
     public ResponseEntity<Article> patchArticleById(@Valid @RequestBody PatchArticleRequest request, @PathVariable long id,
                                                     @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(service.patchById(request, id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())), jwt.getClaimAsString("role")));
+    }
+
+    @PostMapping("/{id}/submit")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void submitForReview(@PathVariable long id,
+                                                @AuthenticationPrincipal Jwt jwt) {
+        service.submitForReview(id, Long.parseLong(jwt.getSubject()));
     }
 }
