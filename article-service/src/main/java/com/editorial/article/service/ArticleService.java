@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.Optional;
 
 @Service
@@ -26,6 +27,10 @@ public class ArticleService {
 
     public ArticleService(ArticleRepository repository) {
         this.repository = repository;
+    }
+
+    private void checkIfEditable(Article article, String role) {
+        if (role.equals("AUTHOR") && article.getStatus().name().equals("PENDING_REVIEW")) throw new AccessDeniedException("Article is in review");
     }
 
     private void checkIfAccessible(Article article, long accountId, String role) {
@@ -49,9 +54,24 @@ public class ArticleService {
     }
 
     @Transactional(readOnly = true)
-    public Article findById(long id) {
-        Optional<Article> response = repository.findById(id);
-        return response.orElseThrow(ArticleNotFoundException::new);
+    public Article findById(long id, String role, long accountId) {
+        Article article = repository.findByIdForUpdate(id)
+                .orElseThrow(ArticleNotFoundException::new);
+
+        ArticleStatus status = article.getStatus();
+
+        boolean isPublished = status == ArticleStatus.PUBLISHED;
+        boolean isOwner = article.getAuthorAccountId() == accountId;
+
+        if (role.equals("ADMIN")
+                || isPublished
+                || (role.equals("AUTHOR") && isOwner)
+                || (role.equals("EDITOR") && status == ArticleStatus.PENDING_REVIEW)) {
+            return article;
+        }
+
+        throw new AccessDeniedException("Not enough rights to view this article");
+        
     }
 
     @Transactional
@@ -61,8 +81,9 @@ public class ArticleService {
 
     @Transactional
     public Article updateById(UpdateArticleRequest request, long id, long accountId, String role){
-        Article response = repository.findById(id).orElseThrow(ArticleNotFoundException::new);
+        Article response = repository.findByIdForUpdate(id).orElseThrow(ArticleNotFoundException::new);
         if (response.getStatus().name().equals("PUBLISHED") || response.getStatus().name().equals("ARCHIVED")) throw new IncorrectArticleStatusException();
+        checkIfEditable(response, role);
         checkIfAccessible(response, accountId, role);
 
         response.setTitle(request.title());
@@ -73,7 +94,7 @@ public class ArticleService {
     @Transactional
     public void delete(long id, long accountId, String role) {
         Article response = repository.findById(id).orElseThrow(ArticleNotFoundException::new);
-
+        checkIfEditable(response, role);
         checkIfAccessible(response, accountId, role);
 
         repository.deleteById(id);
@@ -82,7 +103,10 @@ public class ArticleService {
     @Transactional
     public Article patchById(PatchArticleRequest request, long id, long accountId, String role) {
         Article response = repository.findById(id).orElseThrow(ArticleNotFoundException::new);
+        String status = response.getStatus().name();
 
+        if (status.equals("PUBLISHED") || status.equals("ARCHIVED")) throw new IncorrectArticleStatusException();
+        checkIfEditable(response, role);
         checkIfAccessible(response, accountId, role);
         if (request.title() != null) response.setTitle(request.title());
         if (request.content() != null) response.setContent(request.content());
@@ -91,7 +115,7 @@ public class ArticleService {
 
     @Transactional
     public void submitForReview(long articleId, long accountId) {
-        Article foundArticle = repository.findById(articleId).orElseThrow(ArticleNotFoundException::new);
+        Article foundArticle = repository.findByIdForUpdate(articleId).orElseThrow(ArticleNotFoundException::new);
 
         String status = foundArticle.getStatus().name();
 

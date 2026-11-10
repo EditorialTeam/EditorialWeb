@@ -47,8 +47,9 @@ public class ArticleController {
     }
 
     @GetMapping("/{id}")
-    public Article getArticleById(@PathVariable long id) {
-        return service.findById(id);
+    public Article getArticleById(@PathVariable long id,
+                                  @AuthenticationPrincipal Jwt jwt) {
+        return service.findById(id, jwt.getClaimAsString("role"), Long.parseLong(jwt.getSubject()));
     }
 
     @PostMapping
