@@ -10,11 +10,11 @@
 | POST | `/api/articles` | `AUTHOR`, `EDITOR`, `ADMIN`. Создаёт статью со своим ID аккаунта | `201`, статья в `DRAFT` |
 | PUT, PATCH | `/api/articles/{id}` | `AUTHOR` для своих `DRAFT` и `REJECTED`. `EDITOR` и `ADMIN` для любых `DRAFT`, `REJECTED` и `PENDING_REVIEW` | `200`, обновлённая статья |
 | DELETE | `/api/articles/{id}` | `AUTHOR` для своих статей вне `PENDING_REVIEW`. `EDITOR` и `ADMIN` для любых статей | `204` |
-| POST | `/api/articles/{id}/submit` | Владелец статьи. Проверяется ID аккаунта | `204` |
-| POST | `/api/articles/{id}/withdraw-from-review` | Любая роль с токеном, кроме `AUTHOR` для собственной статьи в `PENDING_REVIEW` | `204` |
+| POST | `/api/articles/{id}/submit` | `AUTHOR`, `EDITOR` или `ADMIN`. Аккаунт должен владеть статьёй | `204` |
+| POST | `/api/articles/{id}/withdraw-from-review` | `AUTHOR`, `EDITOR` или `ADMIN`. Проверка в сервисе отклоняет `AUTHOR` для собственной статьи в `PENDING_REVIEW` | `204` |
 | POST | `/api/articles/{id}/archive` | `AUTHOR` для своей статьи, `EDITOR` и `ADMIN` для любой | `204` |
 | GET | `/api/editor/articles` | `EDITOR` и `ADMIN` | `200`, страница статей в `PENDING_REVIEW` |
-| POST | `/api/editor/articles/{id}/moderate` | Любая роль с токеном. Редакторское ограничение применяется к очереди | `204` |
+| POST | `/api/editor/articles/{id}/moderate` | `EDITOR` и `ADMIN` | `204` |
 
 ## Список статей
 

@@ -17,11 +17,11 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/articles").hasAnyRole("AUTHOR", "EDITOR", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/articles/**", "/api/articles").hasAnyRole("AUTHOR", "EDITOR", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/articles/**").hasAnyRole("AUTHOR", "EDITOR", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/articles/**").hasAnyRole("AUTHOR", "EDITOR", "ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/articles/**").hasAnyRole("AUTHOR", "EDITOR", "ADMIN")
-                        .requestMatchers("/api/editor/articles").hasAnyRole("EDITOR", "ADMIN")
+                        .requestMatchers("/api/editor/articles/**", "/api/editor/articles").hasAnyRole("EDITOR", "ADMIN")
                         .anyRequest().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)));
 
