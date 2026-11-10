@@ -29,8 +29,8 @@ public class ArticleService {
         this.repository = repository;
     }
 
-    private void checkIfEditable(Article article, String role) {
-        if (role.equals("AUTHOR") && article.getStatus().name().equals("PENDING_REVIEW")) throw new AccessDeniedException("Article is in review");
+    private void checkIfEditable(Article article, long accountId, String role) {
+        if (role.equals("AUTHOR") && article.getStatus().name().equals("PENDING_REVIEW") && article.getAuthorAccountId() == accountId) throw new AccessDeniedException("Article is in review");
     }
 
     private void checkIfAccessible(Article article, long accountId, String role) {
@@ -76,25 +76,26 @@ public class ArticleService {
 
     @Transactional
     public Article add(CreateArticleRequest requestBody, Long accountId) {
-        return repository.save(new Article(requestBody.title(), requestBody.content(), accountId));
+        return repository.save(new Article(requestBody.title(), requestBody.content(), accountId, ArticleStatus.DRAFT));
     }
 
     @Transactional
     public Article updateById(UpdateArticleRequest request, long id, long accountId, String role){
         Article response = repository.findByIdForUpdate(id).orElseThrow(ArticleNotFoundException::new);
         if (response.getStatus().name().equals("PUBLISHED") || response.getStatus().name().equals("ARCHIVED")) throw new IncorrectArticleStatusException();
-        checkIfEditable(response, role);
+        checkIfEditable(response, accountId, role);
         checkIfAccessible(response, accountId, role);
 
         response.setTitle(request.title());
         response.setContent(request.content());
+        response.setUpdatedAt(Instant.now());
 
         return response;
     }
     @Transactional
     public void delete(long id, long accountId, String role) {
         Article response = repository.findById(id).orElseThrow(ArticleNotFoundException::new);
-        checkIfEditable(response, role);
+        checkIfEditable(response,accountId, role);
         checkIfAccessible(response, accountId, role);
 
         repository.deleteById(id);
@@ -106,10 +107,12 @@ public class ArticleService {
         String status = response.getStatus().name();
 
         if (status.equals("PUBLISHED") || status.equals("ARCHIVED")) throw new IncorrectArticleStatusException();
-        checkIfEditable(response, role);
+        checkIfEditable(response, accountId, role);
         checkIfAccessible(response, accountId, role);
         if (request.title() != null) response.setTitle(request.title());
         if (request.content() != null) response.setContent(request.content());
+
+        response.setUpdatedAt(Instant.now());
         return response;
     }
 
@@ -159,6 +162,15 @@ public class ArticleService {
         checkIfAccessible(foundArticle, accountId, role);
 
         foundArticle.setStatus(ArticleStatus.ARCHIVED);
+
+    }
+
+    @Transactional
+    public void withdrawReview(long articleId, long accountId, String role) {
+        Article foundArticle = repository.findByIdForUpdate(articleId).orElseThrow(ArticleNotFoundException::new);
+        checkIfEditable(foundArticle, accountId, role);
+
+        foundArticle.setStatus(ArticleStatus.DRAFT);
 
     }
 }
