@@ -26,14 +26,12 @@ import java.util.UUID;
 public class UserService {
     private final UserRepository repository;
     private final OutboxEventsRepository outboxRepository;
-    private final OutboxPublisher publisher;
     private final ObjectMapper objectMapper;
 
-    public UserService (UserRepository repository, OutboxEventsRepository outboxRepository, OutboxPublisher publisher, ObjectMapper objectMapper) {
+    public UserService (UserRepository repository, OutboxEventsRepository outboxRepository, ObjectMapper objectMapper) {
         this.repository = repository;
         this.outboxRepository = outboxRepository;
         this.objectMapper = objectMapper;
-        this.publisher = publisher;
     }
 
     @Transactional
@@ -49,7 +47,7 @@ public class UserService {
     @Transactional(readOnly=true)
     public GetUserProfileResponse getUserProfile(Long accountId) {
         User foundProfile = repository.findByAccountId(accountId).orElseThrow(UserNotFoundException::new);
-        return new GetUserProfileResponse(foundProfile.getUsername(), foundProfile.getDisplayName(), foundProfile.getCreatedAt(), foundProfile.getAccountId());
+        return new GetUserProfileResponse(foundProfile.getUsername(), foundProfile.getDisplayName(), foundProfile.getCreatedAt(), foundProfile.getAccountId(), foundProfile.getProfileDescription());
     }
 
     @Transactional(readOnly = true)
@@ -59,7 +57,8 @@ public class UserService {
                         account.getUsername(),
                         account.getDisplayName(),
                         account.getCreatedAt(),
-                        account.getAccountId())
+                        account.getAccountId(),
+                        account.getProfileDescription())
         );
     }
 

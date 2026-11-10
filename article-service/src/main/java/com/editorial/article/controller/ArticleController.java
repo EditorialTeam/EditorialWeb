@@ -92,4 +92,11 @@ public class ArticleController {
                         @AuthenticationPrincipal Jwt jwt) {
         service.archiveArticle(id, Long.parseLong(jwt.getSubject()), jwt.getClaimAsString("role"));
     }
+
+    @PostMapping("/{id}/withdraw-from-review")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void withdraw(@PathVariable long id,
+                         @AuthenticationPrincipal Jwt jwt) {
+        service.withdrawReview(id, Long.parseLong(jwt.getSubject()), jwt.getClaimAsString("role"));
+    }
 }

@@ -37,16 +37,29 @@ public class Article {
     @Column(nullable = false)
     private ArticleStatus status;
 
+    @PrePersist
+    protected void onCreated() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
+
     //для jpa
     protected Article() {
     }
 
-    public Article(String title, String content, Long authorAccountId) {
+    public Article(String title, String content, long authorAccountId) {
         this.title = title;
         this.content = content;
         this.authorAccountId = authorAccountId;
     }
 
+    public Article(String title, String content, long authorAccountId, ArticleStatus status) {
+        this.title = title;
+        this.content = content;
+        this.authorAccountId = authorAccountId;
+        this.status = status;
+    }
 
     public long getId() {
         return id;
@@ -89,5 +102,9 @@ public class Article {
 
     public void setRejectionReason(String rejectionReason) {
         this.rejectionReason = rejectionReason;
+    }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
