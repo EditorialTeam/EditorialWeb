@@ -4,7 +4,6 @@ import com.editorial.article.dto.RejectReasonRequest;
 import com.editorial.article.model.Article;
 import com.editorial.article.model.ModerationDecision;
 import com.editorial.article.service.ArticleService;
-import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -27,15 +26,12 @@ public class ArticleEditorController {
         return ResponseEntity.ok(service.getPendingArticles(PageRequest.of(page, size, Sort.by("createdAt").ascending().and(Sort.by("id").ascending()))));
     }
 
-    @PostMapping("/{id}/approve")
+    @PostMapping("/{id}/moderate")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void approve(@PathVariable long id) {
-        service.moderateArticle(id, ModerationDecision.APPROVED, null);
+    public void moderate(@PathVariable long id,
+                         @RequestParam ModerationDecision decision,
+                         @RequestBody(required = false) RejectReasonRequest request) {
+        service.moderateArticle(id, decision, request != null ? request.rejectionReason() : null);
     }
 
-    @PostMapping("/{id}/reject")
-    @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void reject(@PathVariable long id, @Valid @RequestBody RejectReasonRequest request) {
-        service.moderateArticle(id, ModerationDecision.REJECTED, request.rejectionReason());
-    }
 }

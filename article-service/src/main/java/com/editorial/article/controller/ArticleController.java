@@ -1,25 +1,19 @@
 package com.editorial.article.controller;
 
-import com.editorial.article.dto.CreateArticleRequest;
-import com.editorial.article.dto.PatchArticleRequest;
-import com.editorial.article.dto.UpdateArticleRequest;
+import com.editorial.article.dto.*;
 import com.editorial.article.model.Article;
+import com.editorial.article.model.ArticleStatus;
 import com.editorial.article.service.ArticleService;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import org.apache.coyote.Response;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -31,12 +25,21 @@ public class ArticleController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Article>> getArticles(@Min(0) @RequestParam(name="page", defaultValue = "0") int page,
+    public ResponseEntity<Page<Article>> getArticlesPublished(@Min(0) @RequestParam(name="page", defaultValue = "0") int page,
                                                      @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size) {
         Pageable request = PageRequest.of(page, size,
                 Sort.by("id").ascending());
 
         return ResponseEntity.ok(service.getAll(request));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<Page<Article>> getMyArticles(@Min(0) @RequestParam(name="page", defaultValue = "0") int page,
+                                                       @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size,
+                                                       @AuthenticationPrincipal Jwt jwt) {
+        Pageable request = PageRequest.of(page, size, Sort.by("createdAt").ascending());
+
+        return ResponseEntity.ok(service.getMy(request, Long.parseLong(jwt.getSubject())));
     }
 
     @GetMapping("/{id}")
@@ -76,5 +79,12 @@ public class ArticleController {
     public void submitForReview(@PathVariable long id,
                                                 @AuthenticationPrincipal Jwt jwt) {
         service.submitForReview(id, Long.parseLong(jwt.getSubject()));
+    }
+
+    @PostMapping("/{id}/archive")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void archive(@PathVariable long id,
+                        @AuthenticationPrincipal Jwt jwt) {
+        service.archiveArticle(id, Long.parseLong(jwt.getSubject()), jwt.getClaimAsString("role"));
     }
 }

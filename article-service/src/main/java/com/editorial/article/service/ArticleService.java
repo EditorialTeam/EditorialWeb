@@ -37,7 +37,12 @@ public class ArticleService {
 
     @Transactional(readOnly = true)
     public Page<Article> getAll(Pageable request) {
-        return repository.findAll(request);
+        return repository.findAllByStatus(ArticleStatus.PUBLISHED, request);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Article> getMy(Pageable request, long accountId) {
+        return repository.findAllByAuthorAccountId(accountId, request);
     }
 
     @Transactional(readOnly = true)
@@ -85,8 +90,10 @@ public class ArticleService {
     public void submitForReview(long articleId, long accountId) {
         Article foundArticle = repository.findById(articleId).orElseThrow(ArticleNotFoundException::new);
 
+        String status = foundArticle.getStatus().name();
+
         if (foundArticle.getAuthorAccountId() != accountId) throw new AccessDeniedException("You can't perform this operation");
-        if (!foundArticle.getStatus().name().equals("DRAFT") || !foundArticle.getStatus().name().equals("REJECTED")) throw new IncorrectArticleStatusException();
+        if (!status.equals("DRAFT") && !status.equals("REJECTED") && !status.equals("ARCHIVED")) throw new IncorrectArticleStatusException();
 
         foundArticle.setStatus(ArticleStatus.valueOf("PENDING_REVIEW"));
         foundArticle.setRejectionReason("");
@@ -97,7 +104,7 @@ public class ArticleService {
         return repository.findAllByStatus(ArticleStatus.PENDING_REVIEW, request);
     }
 
-
+    @Transactional
     public void moderateArticle(long articleId, ModerationDecision decision, String rejectionReason) {
         Article foundArticle = repository.findByIdForUpdate(articleId).orElseThrow(ArticleNotFoundException::new);
 
@@ -115,10 +122,16 @@ public class ArticleService {
                 foundArticle.setRejectionReason(rejectionReason);
             }
         }
-
-
     }
 
+    @Transactional
+    public void archiveArticle(long articleId, long accountId, String role) {
+        Article foundArticle = repository.findByIdForUpdate(articleId).orElseThrow(ArticleNotFoundException::new);
 
+        if (!foundArticle.getStatus().name().equals("PUBLISHED")) throw new IncorrectArticleStatusException();
+        checkIfAccessible(foundArticle, accountId, role);
 
+        foundArticle.setStatus(ArticleStatus.ARCHIVED);
+
+    }
 }

@@ -17,6 +17,8 @@ import java.util.Optional;
 @Repository
 public interface ArticleRepository extends JpaRepository<Article, Long> {
     Page<Article> findAllByStatus(ArticleStatus status, Pageable pageable);
+    Page<Article> findAllByAuthorAccountId(long accountId, Pageable pageable);
+
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Article a WHERE a.id = :id")
