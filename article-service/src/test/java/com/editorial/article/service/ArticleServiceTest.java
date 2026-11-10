@@ -32,7 +32,7 @@ public class ArticleServiceTest {
         Article testArticle = new Article("", "", 1L);
         when(repository.findById(0L)).thenReturn(Optional.of(testArticle));
 
-        Article result = service.findById(0L);
+        Article result = service.findById(0L, "ADMIN", 5L);
 
         assertSame(testArticle, result);
     }
@@ -41,7 +41,7 @@ public class ArticleServiceTest {
     public void shouldThrowWhenArticleNotFound() {
         when(repository.findById(999L)).thenReturn(Optional.empty());
         assertThrows(ArticleNotFoundException.class, () -> {
-            service.findById(999L);
+            service.findById(999L, "ADMIN", 5L);
         });
     }
 

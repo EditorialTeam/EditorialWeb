@@ -1,24 +1,20 @@
 package com.editorial.article.controller;
 
-import com.editorial.article.dto.CreateArticleRequest;
-import com.editorial.article.dto.PatchArticleRequest;
-import com.editorial.article.dto.UpdateArticleRequest;
+import com.editorial.article.dto.*;
 import com.editorial.article.model.Article;
+import com.editorial.article.model.ArticleStatus;
 import com.editorial.article.service.ArticleService;
+import com.editorial.article.service.ArticleSpecifications;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.Objects;
 
 @RestController
@@ -30,17 +26,30 @@ public class ArticleController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Article>> getArticles(@Min(0) @RequestParam(name="page", defaultValue = "0") int page,
-                                                     @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size) {
+    public ResponseEntity<Page<Article>> getArticlesPublished(
+            @RequestParam(required = false) ArticleStatus status,
+            @RequestParam(required = false) Long authorAccountId,
+            @Min(0)@RequestParam(name="page", defaultValue = "0") int page,
+            @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size) {
         Pageable request = PageRequest.of(page, size,
                 Sort.by("id").ascending());
 
-        return ResponseEntity.ok(service.getAll(request));
+        return ResponseEntity.ok(service.getAll(request, status, authorAccountId));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<Page<Article>> getMyArticles(@Min(0) @RequestParam(name="page", defaultValue = "0") int page,
+                                                       @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size,
+                                                       @AuthenticationPrincipal Jwt jwt) {
+        Pageable request = PageRequest.of(page, size, Sort.by("createdAt").ascending());
+
+        return ResponseEntity.ok(service.getMy(request, Long.parseLong(jwt.getSubject())));
     }
 
     @GetMapping("/{id}")
-    public Article getArticleById(@PathVariable long id) {
-        return service.findById(id);
+    public Article getArticleById(@PathVariable long id,
+                                  @AuthenticationPrincipal Jwt jwt) {
+        return service.findById(id, jwt.getClaimAsString("role"), Long.parseLong(jwt.getSubject()));
     }
 
     @PostMapping
@@ -68,5 +77,19 @@ public class ArticleController {
     public ResponseEntity<Article> patchArticleById(@Valid @RequestBody PatchArticleRequest request, @PathVariable long id,
                                                     @AuthenticationPrincipal Jwt jwt) {
         return ResponseEntity.ok(service.patchById(request, id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())), jwt.getClaimAsString("role")));
+    }
+
+    @PostMapping("/{id}/submit")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void submitForReview(@PathVariable long id,
+                                                @AuthenticationPrincipal Jwt jwt) {
+        service.submitForReview(id, Long.parseLong(jwt.getSubject()));
+    }
+
+    @PostMapping("/{id}/archive")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void archive(@PathVariable long id,
+                        @AuthenticationPrincipal Jwt jwt) {
+        service.archiveArticle(id, Long.parseLong(jwt.getSubject()), jwt.getClaimAsString("role"));
     }
 }

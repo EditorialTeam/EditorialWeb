@@ -41,7 +41,7 @@ public class ArticleControllerTest {
     @Test
     void shouldReturnArticleById() throws Exception {
         Article original = new Article("Original", "Original", 1L);
-        when(service.findById(5L)).thenReturn(original);
+        when(service.findById(5L, "ADMIN", 5L)).thenReturn(original);
 
        mockMvc.perform(MockMvcRequestBuilders.get("/api/articles/5")).andExpect(status().isOk()).andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Original"))
                .andExpect(MockMvcResultMatchers.jsonPath("$.content").value("Original"));
@@ -49,7 +49,7 @@ public class ArticleControllerTest {
 
     @Test
     void shouldReturn404WhenArticleNotFound() throws Exception {
-        when(service.findById(999L)).thenThrow(ArticleNotFoundException.class);
+        when(service.findById(999L, "ADMIN", 5L)).thenThrow(ArticleNotFoundException.class);
 
         mockMvc.perform(MockMvcRequestBuilders.get("/api/articles/999")).andExpect(status().isNotFound())
                 .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("ARTICLE_NOT_FOUND"));
