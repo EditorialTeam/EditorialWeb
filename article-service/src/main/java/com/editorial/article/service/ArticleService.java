@@ -12,6 +12,7 @@ import com.editorial.article.model.ModerationDecision;
 import com.editorial.article.repository.ArticleRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,8 +37,10 @@ public class ArticleService {
 
 
     @Transactional(readOnly = true)
-    public Page<Article> getAll(Pageable request) {
-        return repository.findAllByStatus(ArticleStatus.PUBLISHED, request);
+    public Page<Article> getAll(Pageable request, ArticleStatus status, Long accountId) {
+        Specification<Article> specification = Specification.allOf(ArticleSpecifications.hasAuthorAccountId(accountId).and(ArticleSpecifications.hasStatus(status)));
+
+        return repository.findAll(specification, request);
     }
 
     @Transactional(readOnly = true)

@@ -4,6 +4,7 @@ import com.editorial.article.dto.*;
 import com.editorial.article.model.Article;
 import com.editorial.article.model.ArticleStatus;
 import com.editorial.article.service.ArticleService;
+import com.editorial.article.service.ArticleSpecifications;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -25,12 +26,15 @@ public class ArticleController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Article>> getArticlesPublished(@Min(0) @RequestParam(name="page", defaultValue = "0") int page,
-                                                     @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size) {
+    public ResponseEntity<Page<Article>> getArticlesPublished(
+            @RequestParam(required = false) ArticleStatus status,
+            @RequestParam(required = false) Long authorAccountId,
+            @Min(0)@RequestParam(name="page", defaultValue = "0") int page,
+            @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size) {
         Pageable request = PageRequest.of(page, size,
                 Sort.by("id").ascending());
 
-        return ResponseEntity.ok(service.getAll(request));
+        return ResponseEntity.ok(service.getAll(request, status, authorAccountId));
     }
 
     @GetMapping("/my")
