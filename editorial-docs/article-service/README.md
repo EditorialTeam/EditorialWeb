@@ -63,7 +63,28 @@
 
 ## Ответ со статьёй
 
-Один и тот же объект возвращается при чтении по ID, создании, обновлении и внутри `content` в списках.
+`GET /api/articles` и `GET /api/articles/{id}` возвращают `GetArticlesResponse`. В общем списке объекты находятся в `content`.
+
+```json
+{
+  "articleId": 1,
+  "authorId": 7,
+  "title": "Заголовок",
+  "content": "Текст статьи",
+  "authorDisplayName": "Иван Иванов",
+  "status": "PUBLISHED",
+  "createdAt": "2026-11-12T10:00:00Z",
+  "publishedAt": "2026-11-12T11:00:00Z"
+}
+```
+
+`authorId` содержит ID аккаунта автора. Фильтр общего списка по-прежнему называется `authorAccountId`. Поле `publishedAt` может содержать `null`.
+
+Имена авторов article-service получает у user-service через `POST /api/internal/users/batch`. Для страницы списка собирается набор уникальных ID авторов и выполняется один пакетный запрос. При получении статьи по ID передаётся ID аккаунта её автора. Запрос идёт напрямую на `http://user-service:8080`.
+
+Если профиль отсутствует, отображаемое имя равно `null` или запрос завершается ошибкой `RestClientException`, статья возвращается с `authorDisplayName: null`. При пустом наборе ID запрос к user-service пропускается. [Внутренний API профилей](../user-service/README.md#внутренний-api-профилей)
+
+`GET /api/articles/my`, `GET /api/editor/articles`, создание и обновление возвращают `Article` со следующими полями.
 
 ```json
 {
@@ -71,11 +92,14 @@
   "title": "Заголовок",
   "content": "Текст статьи",
   "authorAccountId": 7,
-  "status": "DRAFT"
+  "status": "DRAFT",
+  "createdAt": "2026-11-12T10:00:00Z",
+  "updatedAt": null,
+  "publishedAt": null
 }
 ```
 
-`createdAt`, `updatedAt`, `publishedAt` и `rejectionReason` хранятся в базе. Текущий JSON статьи содержит только поля из примера.
+При создании сервис записывает `createdAt`, при `PUT` и `PATCH` — `updatedAt`, при одобрении — `publishedAt`. Причина отклонения хранится в базе, текущие ответы со статьёй её не содержат.
 
 ## Ошибки
 

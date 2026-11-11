@@ -8,13 +8,14 @@
 | [article-service](article-service/README.md) | Статьи, фильтры, редакционный цикл и очередь модерации |
 | [user-service](user-service/README.md) | Свой профиль и управление профилями |
 | [gateway-service](gateway-service/README.md) | Внешние маршруты и проверка доступа в целевых сервисах |
-| [authorization-server](authorization-server/README.md) | Отдельный OAuth2-модуль для сервисных интеграций |
 
 Для запросов с телом JSON передавайте `Content-Type: application/json`. Для защищённых методов передавайте `Authorization: Bearer <accessToken>`. Даты в JSON передаются строками ISO 8601 в UTC.
+
+JWT выдаёт auth-service. Article-service и user-service проверяют их по публичным ключам auth-service, доступным внутри сети Compose по `http://auth-service:8080/.well-known/jwks.json`.
 
 ## Основные сценарии
 
 - Регистрация создаёт аккаунт `USER` в статусе `PENDING`. После подтверждения создания профиля через Kafka аккаунт переходит в `ACTIVE`. Пока профиль создаётся, вход возвращает `401 ACCOUNT_STILL_PENDING`. [Регистрация и события Kafka](auth-service/README.md#создание-профиля-через-kafka)
 - Любой вошедший пользователь может читать и менять свой профиль. Ответ чтения содержит `accountId`, `username`, `displayName`, `createdAt` и `profileDescription`. [Профили](user-service/README.md)
-- Статья начинается в `DRAFT`. Владелец отправляет её на проверку, после чего решение модерации переводит статью в `PUBLISHED` или `REJECTED`. У списка и карточки разные правила видимости. [Доступ и редакционный цикл](article-service/README.md)
+- Статья начинается в `DRAFT`. Владелец отправляет её на проверку, после чего решение модерации переводит статью в `PUBLISHED` или `REJECTED`. Ответы `GET /api/articles` и `GET /api/articles/{id}` содержат имя автора, которое article-service получает пакетным запросом к user-service. Для списка статей и получения статьи по ID применяются разные правила доступа. [Доступ и редакционный цикл](article-service/README.md)
 - Маршруты управления аккаунтами и профилями требуют `ADMIN`. После смены роли новые права попадают в следующий выданный JWT. [Аккаунты](auth-service/README.md#управление-аккаунтами) · [Профили](user-service/README.md#управление-профилями)

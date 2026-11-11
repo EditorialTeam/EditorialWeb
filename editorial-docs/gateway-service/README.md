@@ -18,3 +18,5 @@
 Для защищённых методов передавайте `Authorization: Bearer <accessToken>`. Подпись, срок действия и параметры JWT проверяет целевой сервис. Article-service проверяет доступ к операциям со статьями, а user-service выбирает профиль текущего пользователя по `sub` токена. Оба административных префикса требуют роль `ADMIN` в целевых сервисах.
 
 User-service и article-service получают публичные ключи напрямую у auth-service по адресу `http://auth-service:8080/.well-known/jwks.json` внутри сети Compose.
+
+Имена авторов article-service получает напрямую у user-service через `POST /api/internal/users/batch` внутри сети Compose. [Формат внутреннего запроса](../user-service/README.md#внутренний-api-профилей)

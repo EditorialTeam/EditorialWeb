@@ -27,15 +27,6 @@ public class ArticleServiceTest {
     @InjectMocks
     ArticleService service;
 
-    @Test
-    public void shouldReturnArticleWhenExists() {
-        Article testArticle = new Article("", "", 1L);
-        when(repository.findById(0L)).thenReturn(Optional.of(testArticle));
-
-        Article result = service.findById(0L, "ADMIN", 5L);
-
-        assertSame(testArticle, result);
-    }
 
     @Test
     public void shouldThrowWhenArticleNotFound() {

@@ -12,7 +12,6 @@
         <module>article-service</module>
         <module>user-service</module>
         <module>auth-service</module>
-        <module>authorization-server</module>
         <module>gateway-service</module>
     </modules>
     <properties>

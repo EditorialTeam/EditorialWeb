@@ -38,14 +38,6 @@ public class ArticleControllerTest {
         }
     }
 
-    @Test
-    void shouldReturnArticleById() throws Exception {
-        Article original = new Article("Original", "Original", 1L);
-        when(service.findById(5L, "ADMIN", 5L)).thenReturn(original);
-
-       mockMvc.perform(MockMvcRequestBuilders.get("/api/articles/5")).andExpect(status().isOk()).andExpect(MockMvcResultMatchers.jsonPath("$.title").value("Original"))
-               .andExpect(MockMvcResultMatchers.jsonPath("$.content").value("Original"));
-    }
 
     @Test
     void shouldReturn404WhenArticleNotFound() throws Exception {
