@@ -1,9 +1,6 @@
 package com.editorial.user.service;
 
-import com.editorial.user.dto.GetUserProfileResponse;
-import com.editorial.user.dto.PatchProfileRequest;
-import com.editorial.user.dto.PatchProfileResponse;
-import com.editorial.user.dto.RegisterUserProfileRequest;
+import com.editorial.user.dto.*;
 import com.editorial.user.exception.UserNotFoundException;
 import com.editorial.user.exception.UserProfileAlreadyExists;
 import com.editorial.user.model.OutboxEvent;
@@ -20,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
 import javax.sound.midi.Patch;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -80,5 +78,11 @@ public class UserService {
         User savedUser = repository.save(foundProfile);
 
         return new PatchProfileResponse(savedUser.getDisplayName(), savedUser.getProfileDescription());
+    }
+
+    @Transactional(readOnly = true)
+    public List<PublicUserResponse> getProfilesById(BatchUsersRequest request) {
+        return repository.findAllByAccountIdIn(request.accountIds()).stream().map(profile ->
+                new PublicUserResponse(profile.getAccountId(), profile.getDisplayName())).toList();
     }
 }
