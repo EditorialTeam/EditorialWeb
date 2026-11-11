@@ -2,14 +2,14 @@ package com.editorial.article.client;
 
 import com.editorial.article.dto.BatchUsersRequest;
 import com.editorial.article.dto.PublicUserResponse;
-import com.editorial.article.repository.UserProfileClient;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
+import org.springframework.web.client.RestClientException;
 
 import java.util.*;
-import java.util.stream.Collectors;
-
+@Slf4j
 @Component
 public class RestUserProfileClient implements UserProfileClient {
     private final RestClient restClient;
@@ -20,15 +20,23 @@ public class RestUserProfileClient implements UserProfileClient {
 
     @Override
     public Map<Long, String> getDisplayNames(Set<Long> accountIds) {
-        List<PublicUserResponse> response = restClient
-                .post()
-                .uri("/api/internal/users/batch")
-                .body(new BatchUsersRequest(accountIds))
-                .retrieve()
-                .body(new ParameterizedTypeReference<List<PublicUserResponse>>() {});
+        if (accountIds.isEmpty()) return Map.of();
+
+        List<PublicUserResponse> response = null;
+        try {
+            response = restClient
+                    .post()
+                    .uri("/api/internal/users/batch")
+                    .body(new BatchUsersRequest(accountIds))
+                    .retrieve()
+                    .body(new ParameterizedTypeReference<List<PublicUserResponse>>() {});
+        } catch (RestClientException e) {
+            log.warn("Couldn't fetch from user-service");
+            return Map.of();
+        }
 
 
-       Map<Long, String> returnMap = new HashMap<>();
+        Map<Long, String> returnMap = new HashMap<>();
 
        if (response == null) return Map.of();
        for (PublicUserResponse element : response) {

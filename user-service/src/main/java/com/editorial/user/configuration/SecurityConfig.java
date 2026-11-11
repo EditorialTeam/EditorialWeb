@@ -19,6 +19,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users/me").authenticated()
                         .requestMatchers(HttpMethod.PATCH, "/api/users/me").authenticated()
                         .requestMatchers("/api/admin/users", "/api/admin/users/**").hasRole("ADMIN")
+                        .requestMatchers("/api/internal/users/**", "/api/internal/users").permitAll()
                         .anyRequest().permitAll())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)));
 

@@ -1,9 +1,7 @@
 package com.editorial.article.service;
 
-import com.editorial.article.dto.CreateArticleRequest;
-import com.editorial.article.dto.PatchArticleRequest;
-import com.editorial.article.dto.RejectReasonRequest;
-import com.editorial.article.dto.UpdateArticleRequest;
+import com.editorial.article.client.UserProfileClient;
+import com.editorial.article.dto.*;
 import com.editorial.article.exception.ArticleNotFoundException;
 import com.editorial.article.exception.IncorrectArticleStatusException;
 import com.editorial.article.model.Article;
@@ -18,14 +16,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 public class ArticleService {
     private final ArticleRepository repository;
-
-    public ArticleService(ArticleRepository repository) {
+    private final UserProfileClient userProfileClient;
+    public ArticleService(ArticleRepository repository, UserProfileClient userProfileClient) {
+        this.userProfileClient = userProfileClient;
         this.repository = repository;
     }
 
@@ -42,10 +44,24 @@ public class ArticleService {
 
 
     @Transactional(readOnly = true)
-    public Page<Article> getAll(Pageable request, ArticleStatus status, Long accountId) {
+    public Page<GetArticlesResponse> getAll(Pageable request, ArticleStatus status, Long accountId) {
         Specification<Article> specification = Specification.allOf(ArticleSpecifications.hasAuthorAccountId(accountId).and(ArticleSpecifications.hasStatus(status)));
 
-        return repository.findAll(specification, request);
+        Page<Article> articles =  repository.findAll(specification, request);
+
+        Set<Long> authorIds = articles.getContent().stream().map(Article::getAuthorAccountId).collect(Collectors.toSet());
+
+        Map<Long, String> displayNames = userProfileClient.getDisplayNames(authorIds);
+
+        return articles.map(article ->
+                new GetArticlesResponse(article.getId(),
+                        article.getAuthorAccountId(),
+                        article.getTitle(),
+                        article.getContent(),
+                        displayNames.get(article.getAuthorAccountId()),
+                        article.getStatus(),
+                        article.getCreatedAt(),
+                        article.getPublishedAt()));
     }
 
     @Transactional(readOnly = true)
@@ -54,7 +70,7 @@ public class ArticleService {
     }
 
     @Transactional(readOnly = true)
-    public Article findById(long id, String role, long accountId) {
+    public GetArticlesResponse findById(long id, String role, long accountId) {
         Article article = repository.findByIdForUpdate(id)
                 .orElseThrow(ArticleNotFoundException::new);
 
@@ -67,7 +83,15 @@ public class ArticleService {
                 || isPublished
                 || (role.equals("AUTHOR") && isOwner)
                 || (role.equals("EDITOR") && status == ArticleStatus.PENDING_REVIEW)) {
-            return article;
+           Map<Long, String> displayNames = userProfileClient.getDisplayNames(Set.of(article.getAuthorAccountId()));
+           return new GetArticlesResponse(article.getId(),
+                   article.getAuthorAccountId(),
+                   article.getTitle(),
+                   article.getContent(),
+                   displayNames.get(article.getAuthorAccountId()),
+                   article.getStatus(),
+                   article.getCreatedAt(),
+                   article.getPublishedAt());
         }
 
         throw new AccessDeniedException("Not enough rights to view this article");

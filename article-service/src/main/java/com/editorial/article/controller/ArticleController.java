@@ -26,7 +26,7 @@ public class ArticleController {
     }
 
     @GetMapping
-    public ResponseEntity<Page<Article>> getArticlesPublished(
+    public ResponseEntity<Page<GetArticlesResponse>> getArticlesPublished(
             @RequestParam(required = false) ArticleStatus status,
             @RequestParam(required = false) Long authorAccountId,
             @Min(0)@RequestParam(name="page", defaultValue = "0") int page,
@@ -47,7 +47,7 @@ public class ArticleController {
     }
 
     @GetMapping("/{id}")
-    public Article getArticleById(@PathVariable long id,
+    public GetArticlesResponse getArticleById(@PathVariable long id,
                                   @AuthenticationPrincipal Jwt jwt) {
         return service.findById(id, jwt.getClaimAsString("role"), Long.parseLong(jwt.getSubject()));
     }

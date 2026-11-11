@@ -8,6 +8,7 @@ public record GetArticlesResponse(long articleId,
                                   long authorId,
                                   String title,
                                   String content,
+                                  String authorDisplayName,
                                   ArticleStatus status,
                                   Instant createdAt,
                                   Instant publishedAt) {
