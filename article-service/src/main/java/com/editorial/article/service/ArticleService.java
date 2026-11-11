@@ -71,7 +71,7 @@ public class ArticleService {
 
     @Transactional(readOnly = true)
     public GetArticlesResponse findById(long id, String role, long accountId) {
-        Article article = repository.findByIdForUpdate(id)
+        Article article = repository.findById(id)
                 .orElseThrow(ArticleNotFoundException::new);
 
         ArticleStatus status = article.getStatus();
