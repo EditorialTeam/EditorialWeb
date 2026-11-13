@@ -81,4 +81,8 @@ public class Comment {
     public boolean isDeleted() {
         return deleted;
     }
+
+    public String getContent() {
+        return content;
+    }
 }
