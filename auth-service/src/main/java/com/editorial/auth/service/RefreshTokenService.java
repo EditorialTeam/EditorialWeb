@@ -1,14 +1,11 @@
 package com.editorial.auth.service;
 
-import com.editorial.auth.dto.UpdateRefreshTokenTokenServiceResponse;
+import com.editorial.auth.dto.token.UpdateRefreshTokenTokenServiceResponse;
 import com.editorial.auth.exception.InvalidRefreshTokenException;
 import com.editorial.auth.model.Account;
 import com.editorial.auth.model.RefreshToken;
-import com.editorial.auth.repository.AccountRepository;
 import com.editorial.auth.repository.RefreshTokenRepository;
-import jakarta.persistence.LockModeType;
 import jakarta.transaction.Transactional;
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.stereotype.Service;
 
 import java.security.SecureRandom;

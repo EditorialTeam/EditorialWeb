@@ -1,7 +1,7 @@
 package com.editorial.user.controller;
 
-import com.editorial.user.dto.BatchUsersRequest;
-import com.editorial.user.dto.PublicUserResponse;
+import com.editorial.user.dto.client.BatchUsersRequest;
+import com.editorial.user.dto.client.PublicUserResponse;
 import com.editorial.user.service.UserService;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;

@@ -1,10 +1,9 @@
 package com.editorial.auth.exception;
 
-import com.editorial.auth.dto.ApiError;
+import com.editorial.auth.dto.error.ApiError;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice

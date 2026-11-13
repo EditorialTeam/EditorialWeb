@@ -1,7 +1,7 @@
 package com.editorial.user.consumer;
 
 import com.editorial.user.consumer.event.ProfileCreationRequested;
-import com.editorial.user.dto.RegisterUserProfileRequest;
+import com.editorial.user.dto.user.RegisterUserProfileRequest;
 import com.editorial.user.service.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

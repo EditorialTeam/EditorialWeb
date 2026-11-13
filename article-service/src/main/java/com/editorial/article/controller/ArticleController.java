@@ -1,10 +1,12 @@
 package com.editorial.article.controller;
 
-import com.editorial.article.dto.*;
+import com.editorial.article.dto.article.CreateArticleRequest;
+import com.editorial.article.dto.article.GetArticlesResponse;
+import com.editorial.article.dto.article.PatchArticleRequest;
+import com.editorial.article.dto.article.UpdateArticleRequest;
 import com.editorial.article.model.Article;
 import com.editorial.article.model.ArticleStatus;
 import com.editorial.article.service.ArticleService;
-import com.editorial.article.service.ArticleSpecifications;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

@@ -1,6 +1,6 @@
 package com.editorial.article.exception;
 
-import com.editorial.article.dto.ApiError;
+import com.editorial.article.dto.error.ApiError;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;

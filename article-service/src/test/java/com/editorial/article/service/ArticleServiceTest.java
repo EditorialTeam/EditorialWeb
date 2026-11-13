@@ -1,8 +1,8 @@
 package com.editorial.article.service;
 
-import com.editorial.article.dto.CreateArticleRequest;
-import com.editorial.article.dto.PatchArticleRequest;
-import com.editorial.article.dto.UpdateArticleRequest;
+import com.editorial.article.dto.article.CreateArticleRequest;
+import com.editorial.article.dto.article.PatchArticleRequest;
+import com.editorial.article.dto.article.UpdateArticleRequest;
 import com.editorial.article.exception.ArticleNotFoundException;
 import com.editorial.article.model.Article;
 import com.editorial.article.repository.ArticleRepository;

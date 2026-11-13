@@ -1,8 +1,8 @@
 package com.editorial.auth.service;
 
-import com.editorial.auth.dto.EditAccountRequest;
-import com.editorial.auth.dto.EditAccountResponse;
-import com.editorial.auth.dto.GetAccountsResponse;
+import com.editorial.auth.dto.account.EditAccountRequest;
+import com.editorial.auth.dto.account.EditAccountResponse;
+import com.editorial.auth.dto.account.GetAccountsResponse;
 import com.editorial.auth.exception.AccountNotFoundException;
 import com.editorial.auth.model.Account;
 import com.editorial.auth.model.AccountRole;
@@ -11,8 +11,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.List;
 
 @Service
 public class AccountService {
