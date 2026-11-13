@@ -1,7 +1,7 @@
 package com.editorial.article.client;
 
-import com.editorial.article.dto.BatchUsersRequest;
-import com.editorial.article.dto.PublicUserResponse;
+import com.editorial.article.dto.client.BatchUsersRequest;
+import com.editorial.article.dto.client.PublicUserResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;

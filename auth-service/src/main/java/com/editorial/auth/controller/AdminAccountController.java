@@ -1,8 +1,8 @@
 package com.editorial.auth.controller;
 
-import com.editorial.auth.dto.EditAccountRequest;
-import com.editorial.auth.dto.EditAccountResponse;
-import com.editorial.auth.dto.GetAccountsResponse;
+import com.editorial.auth.dto.account.EditAccountRequest;
+import com.editorial.auth.dto.account.EditAccountResponse;
+import com.editorial.auth.dto.account.GetAccountsResponse;
 import com.editorial.auth.service.AccountService;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;

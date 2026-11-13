@@ -1,10 +1,9 @@
 package com.editorial.user.controller;
 
-import com.editorial.user.dto.GetUserProfileResponse;
-import com.editorial.user.dto.PatchProfileRequest;
-import com.editorial.user.dto.PatchProfileResponse;
+import com.editorial.user.dto.user.GetUserProfileResponse;
+import com.editorial.user.dto.user.PatchProfileRequest;
+import com.editorial.user.dto.user.PatchProfileResponse;
 import com.editorial.user.service.UserService;
-import org.apache.coyote.Response;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;

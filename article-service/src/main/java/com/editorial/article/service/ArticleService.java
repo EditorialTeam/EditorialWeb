@@ -1,7 +1,10 @@
 package com.editorial.article.service;
 
 import com.editorial.article.client.UserProfileClient;
-import com.editorial.article.dto.*;
+import com.editorial.article.dto.article.CreateArticleRequest;
+import com.editorial.article.dto.article.GetArticlesResponse;
+import com.editorial.article.dto.article.PatchArticleRequest;
+import com.editorial.article.dto.article.UpdateArticleRequest;
 import com.editorial.article.exception.ArticleNotFoundException;
 import com.editorial.article.exception.IncorrectArticleStatusException;
 import com.editorial.article.model.Article;
@@ -17,8 +20,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 

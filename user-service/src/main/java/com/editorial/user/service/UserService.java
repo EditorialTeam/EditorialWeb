@@ -1,22 +1,23 @@
 package com.editorial.user.service;
 
-import com.editorial.user.dto.*;
+import com.editorial.user.dto.client.BatchUsersRequest;
+import com.editorial.user.dto.client.PublicUserResponse;
+import com.editorial.user.dto.user.GetUserProfileResponse;
+import com.editorial.user.dto.user.PatchProfileRequest;
+import com.editorial.user.dto.user.PatchProfileResponse;
+import com.editorial.user.dto.user.RegisterUserProfileRequest;
 import com.editorial.user.exception.UserNotFoundException;
-import com.editorial.user.exception.UserProfileAlreadyExists;
 import com.editorial.user.model.OutboxEvent;
 import com.editorial.user.model.User;
 import com.editorial.user.producer.event.RegisteredProfile;
 import com.editorial.user.repository.OutboxEventsRepository;
 import com.editorial.user.repository.UserRepository;
-import jakarta.annotation.Nullable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import tools.jackson.databind.ObjectMapper;
 
-import javax.sound.midi.Patch;
 import java.util.List;
 import java.util.UUID;
 

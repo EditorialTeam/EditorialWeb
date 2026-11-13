@@ -1,6 +1,9 @@
 package com.editorial.auth.service;
 
-import com.editorial.auth.dto.*;
+import com.editorial.auth.dto.auth.*;
+import com.editorial.auth.dto.token.RefreshRequest;
+import com.editorial.auth.dto.token.RefreshResponse;
+import com.editorial.auth.dto.token.UpdateRefreshTokenTokenServiceResponse;
 import com.editorial.auth.exception.AccountStillPendingException;
 import com.editorial.auth.exception.InvalidCredentialsException;
 import com.editorial.auth.exception.AccountAlreadyExistsException;

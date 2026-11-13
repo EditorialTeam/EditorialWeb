@@ -1,9 +1,8 @@
 package com.editorial.user.controller;
 
-import com.editorial.user.dto.GetUserProfileResponse;
-import com.editorial.user.dto.PatchProfileRequest;
-import com.editorial.user.dto.PatchProfileResponse;
-import com.editorial.user.model.User;
+import com.editorial.user.dto.user.GetUserProfileResponse;
+import com.editorial.user.dto.user.PatchProfileRequest;
+import com.editorial.user.dto.user.PatchProfileResponse;
 import com.editorial.user.service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;

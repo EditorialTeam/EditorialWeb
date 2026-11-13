@@ -1,6 +1,6 @@
 package com.editorial.article.controller;
 
-import com.editorial.article.dto.RejectReasonRequest;
+import com.editorial.article.dto.article.RejectReasonRequest;
 import com.editorial.article.model.Article;
 import com.editorial.article.model.ModerationDecision;
 import com.editorial.article.service.ArticleService;

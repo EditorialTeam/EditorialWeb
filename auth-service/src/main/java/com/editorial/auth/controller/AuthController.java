@@ -1,11 +1,11 @@
 package com.editorial.auth.controller;
 
-import com.editorial.auth.dto.*;
+import com.editorial.auth.dto.auth.*;
+import com.editorial.auth.dto.token.RefreshRequest;
+import com.editorial.auth.dto.token.RefreshResponse;
 import com.editorial.auth.producer.RegistrationEventProducer;
-import com.editorial.auth.producer.event.ProfileCreationRequested;
 import com.editorial.auth.service.AuthService;
 import jakarta.validation.Valid;
-import org.apache.coyote.Response;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
