@@ -37,6 +37,16 @@ public class Comment {
 
     protected Comment() {}
 
+    public Comment(Article article,
+                   Comment parentComment,
+                   long authorAccountId,
+                   String content) {
+        this.article = article;
+        this.parentComment = parentComment;
+        this.authorAccountId = authorAccountId;
+        this.content = content;
+    }
+
     @PrePersist
     protected void onCreated() {
         if (createdAt == null) {
@@ -68,5 +78,7 @@ public class Comment {
         return createdAt;
     }
 
-
+    public boolean isDeleted() {
+        return deleted;
+    }
 }

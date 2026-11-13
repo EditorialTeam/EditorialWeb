@@ -41,10 +41,10 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(ArticleNotFoundException.class)
-    public ApiError handleNotFoundArticle(ArticleNotFoundException e) {
-        String code = "ARTICLE_NOT_FOUND";
-        String message = "Couldn't find an article with such ID";
+    @ExceptionHandler({ArticleNotFoundException.class, CommentNotFoundException.class})
+    public ApiError handleNotFoundArticle(ArticleNotFoundException e, CommentNotFoundException e1) {
+        String code = "NOT_FOUND";
+        String message = "Couldn't find an element with such ID";
         Map<String, String> errors = Map.of();
 
         return new ApiError(code, message, errors);
