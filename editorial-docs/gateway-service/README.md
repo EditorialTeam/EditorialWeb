@@ -8,7 +8,7 @@
 | --- | --- | --- |
 | `/api/auth/**` | `http://auth-service:8080` | [auth-service](../auth-service/README.md) |
 | `/api/admin/accounts/**` | `http://auth-service:8080` | [Управление аккаунтами](../auth-service/README.md#управление-аккаунтами) |
-| `/api/articles/**` | `http://article-service:8080` | [Статьи](../article-service/README.md) |
+| `/api/articles/**` | `http://article-service:8080` | [Статьи и комментарии](../article-service/README.md) |
 | `/api/editor/articles/**` | `http://article-service:8080` | [Очередь и модерация](../article-service/README.md#редакционный-цикл) |
 | `/api/users/**` | `http://user-service:8080` | [user-service](../user-service/README.md) |
 | `/api/admin/users/**` | `http://user-service:8080` | [Управление профилями](../user-service/README.md#управление-профилями) |
@@ -20,3 +20,5 @@
 User-service и article-service получают публичные ключи напрямую у auth-service по адресу `http://auth-service:8080/.well-known/jwks.json` внутри сети Compose.
 
 Имена авторов article-service получает напрямую у user-service через `POST /api/internal/users/batch` внутри сети Compose. [Формат внутреннего запроса](../user-service/README.md#внутренний-api-профилей)
+
+Маршруты комментариев входят в `/api/articles/{articleId}/comments` и обслуживаются существующим маршрутом `/api/articles/**`. Сюда входят создание, корневой список, ответы, редактирование и удаление. [Форматы запросов и доступ](../article-service/README.md#комментарии)

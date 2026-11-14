@@ -75,7 +75,7 @@ public class Comment {
     }
 
     public Instant getUpdatedAt() {
-        return createdAt;
+        return updatedAt;
     }
 
     public boolean isDeleted() {
@@ -93,4 +93,9 @@ public class Comment {
     public void setDeleted(boolean deleted) {
         this.deleted = deleted;
     }
+
+    public void setUpdatedAt(Instant updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
 }

@@ -19,6 +19,7 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -102,7 +103,7 @@ public class CommentService {
         return new GetCommentsResponse(
                 saved.getId(),
                 saved.getArticle().getId(),
-                saved.getParentComment().getId(),
+                parentComment == null ? null : saved.getParentComment().getId(),
                 saved.getAuthorAccountId(),
                 "",
                 saved.getContent(),
@@ -134,6 +135,7 @@ public class CommentService {
 
         if (foundComment.getAuthorAccountId() == authorId && request.content() != null) {
             foundComment.setContent(request.content());
+            foundComment.setUpdatedAt(Instant.now());
         }
 
         return new PatchComment(foundComment.getContent());
@@ -149,7 +151,7 @@ public class CommentService {
 
         if (((role.equals("AUTHOR") && foundArticle.getAuthorAccountId() == authorId)) || role.equals("ADMIN")
                 || ((role.equals("USER") || role.equals("EDITOR")) && foundComment.getAuthorAccountId() == authorId)) {
-            foundComment.setContent(null);
+            foundComment.setContent("This comment was deleted :(");
             foundComment.setDeleted(true);
         }
     }

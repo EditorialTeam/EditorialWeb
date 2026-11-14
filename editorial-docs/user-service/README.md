@@ -49,7 +49,7 @@ PATCH ищет профиль по ID аккаунта, переданному �
 
 ## Внутренний API профилей
 
-Article-service получает отображаемые имена авторов через `POST http://user-service:8080/api/internal/users/batch`. В текущей конфигурации user-service этот маршрут доступен с `permitAll()`. Gateway маршрутизирует внешние запросы к профилям по префиксам `/api/users/**` и `/api/admin/users/**`, внутренний API вызывается напрямую в сети Compose.
+Article-service получает отображаемые имена авторов статей и комментариев через `POST http://user-service:8080/api/internal/users/batch`. В текущей конфигурации user-service этот маршрут доступен с `permitAll()`. Gateway маршрутизирует внешние запросы к профилям по префиксам `/api/users/**` и `/api/admin/users/**`, внутренний API вызывается напрямую в сети Compose.
 
 Тело содержит набор ID аккаунтов.
 
