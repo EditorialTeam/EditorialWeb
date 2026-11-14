@@ -68,5 +68,13 @@ public class GlobalExceptionHandler {
         return new ApiError(code, message, null);
     }
 
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(CommentNotAccessibleException.class)
+    public ApiError handleNonAccessibleComment(CommentNotAccessibleException e) {
+        String code = "ILLEGAL_COMMENT_STATE";
+        String message = "Non accessible comment";
+
+        return new ApiError(code, message, null);
+    }
 
 }
