@@ -1,6 +1,6 @@
 # EditorialWeb
 
-Бэкенд редакционной системы с регистрацией, профилями, статьями и очередью модерации. [Документация API](editorial-docs/README.md)
+Бэкенд редакционной системы с регистрацией, профилями, статьями, комментариями и очередью модерации. [Документация API](editorial-docs/README.md)
 
 ## Локальный запуск
 
@@ -21,7 +21,7 @@ docker compose ps
 
 Gateway принимает запросы на `http://localhost:8080`. В приложении четыре сервиса — gateway-service, auth-service, user-service и article-service. JWT выдаёт auth-service, а user-service и article-service проверяют их по публичным ключам auth-service.
 
-Сервис `secrets-gen` создаёт ключи auth-service в томе `auth_keys`, а сервисы с PostgreSQL применяют миграции Flyway при запуске. Kafka используется для создания профиля и активации аккаунта. Имена авторов статей article-service получает по внутреннему HTTP API user-service.
+Сервис `secrets-gen` создаёт ключи auth-service в томе `auth_keys`, а сервисы с PostgreSQL применяют миграции Flyway при запуске. Kafka используется для создания профиля и активации аккаунта. Имена авторов статей и комментариев article-service получает по внутреннему HTTP API user-service.
 
 Для первого запроса зарегистрируйте аккаунт через `POST /api/auth/register`, дождитесь активации и получите JWT через `POST /api/auth/login`. Новые аккаунты получают роль `USER`. Назначение ролей описано в [разделе управления аккаунтами](editorial-docs/auth-service/README.md#управление-аккаунтами).
 

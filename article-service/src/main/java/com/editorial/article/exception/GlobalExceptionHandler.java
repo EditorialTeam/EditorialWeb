@@ -42,7 +42,7 @@ public class GlobalExceptionHandler {
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
     @ExceptionHandler({ArticleNotFoundException.class, CommentNotFoundException.class})
-    public ApiError handleNotFoundArticle(ArticleNotFoundException e, CommentNotFoundException e1) {
+    public ApiError handleNotFoundArticle(Exception e) {
         String code = "NOT_FOUND";
         String message = "Couldn't find an element with such ID";
         Map<String, String> errors = Map.of();
@@ -68,5 +68,13 @@ public class GlobalExceptionHandler {
         return new ApiError(code, message, null);
     }
 
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(CommentNotAccessibleException.class)
+    public ApiError handleNonAccessibleComment(CommentNotAccessibleException e) {
+        String code = "ILLEGAL_COMMENT_STATE";
+        String message = "Non accessible comment";
+
+        return new ApiError(code, message, null);
+    }
 
 }
