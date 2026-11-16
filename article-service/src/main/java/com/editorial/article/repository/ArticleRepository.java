@@ -18,7 +18,7 @@ import java.util.Optional;
 public interface ArticleRepository extends JpaRepository<Article, Long>, JpaSpecificationExecutor<Article> {
     Page<Article> findAllByStatus(ArticleStatus status, Pageable pageable);
     Page<Article> findAllByAuthorAccountId(long accountId, Pageable pageable);
-
+    boolean existsById(long id);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT a FROM Article a WHERE a.id = :id")

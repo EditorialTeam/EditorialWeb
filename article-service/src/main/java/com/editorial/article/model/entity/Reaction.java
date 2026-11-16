@@ -19,16 +19,22 @@ public class Reaction {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="article_id", nullable = false)
-    private Article parentArticle;
+    private Article article;
 
     protected Reaction() {}
+
+    public Reaction(ReactionType reactionType, long authorAccountId, Article parentArticle) {
+        this.reactionType = reactionType;
+        this.authorAccountId = authorAccountId;
+        this.article = parentArticle;
+    }
 
     public long getAuthorAccountId() {
         return authorAccountId;
     }
 
     public Article getParentArticle() {
-        return parentArticle;
+        return article;
     }
 
     public long getId() {
