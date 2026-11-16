@@ -1,6 +1,5 @@
-package com.editorial.auth.model;
+package com.editorial.auth.model.entity;
 
-import com.editorial.auth.producer.event.ProfileCreationRequested;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;

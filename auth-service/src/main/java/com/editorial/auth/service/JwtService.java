@@ -1,12 +1,10 @@
 package com.editorial.auth.service;
 
-import com.editorial.auth.model.Account;
+import com.editorial.auth.model.entity.Account;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.jwk.JWKSet;
 import com.nimbusds.jose.jwk.KeyUse;
-import com.nimbusds.jose.jwk.RSAKey.Builder;
 import com.nimbusds.jose.jwk.RSAKey;
-import org.springframework.security.oauth2.jose.jws.JwsAlgorithm;
 import org.springframework.security.oauth2.jose.jws.SignatureAlgorithm;
 import org.springframework.security.oauth2.jwt.JwsHeader;
 import org.springframework.security.oauth2.jwt.JwtClaimsSet;

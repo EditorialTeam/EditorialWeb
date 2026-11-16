@@ -1,4 +1,4 @@
-package com.editorial.auth.model;
+package com.editorial.auth.model.enums;
 
 public enum AccountStatus {
     PENDING,

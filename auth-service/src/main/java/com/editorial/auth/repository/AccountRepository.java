@@ -1,6 +1,6 @@
 package com.editorial.auth.repository;
 
-import com.editorial.auth.model.Account;
+import com.editorial.auth.model.entity.Account;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

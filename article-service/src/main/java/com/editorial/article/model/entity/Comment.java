@@ -1,4 +1,4 @@
-package com.editorial.article.model;
+package com.editorial.article.model.entity;
 
 import jakarta.persistence.*;
 

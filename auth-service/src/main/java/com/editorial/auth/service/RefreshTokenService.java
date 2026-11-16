@@ -2,8 +2,8 @@ package com.editorial.auth.service;
 
 import com.editorial.auth.dto.token.UpdateRefreshTokenTokenServiceResponse;
 import com.editorial.auth.exception.InvalidRefreshTokenException;
-import com.editorial.auth.model.Account;
-import com.editorial.auth.model.RefreshToken;
+import com.editorial.auth.model.entity.Account;
+import com.editorial.auth.model.entity.RefreshToken;
 import com.editorial.auth.repository.RefreshTokenRepository;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;

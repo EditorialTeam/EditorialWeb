@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler({ArticleNotFoundException.class, CommentNotFoundException.class})
+    @ExceptionHandler({ArticleNotFoundException.class, CommentNotFoundException.class, ReactionNotFoundException.class})
     public ApiError handleNotFoundArticle(Exception e) {
         String code = "NOT_FOUND";
         String message = "Couldn't find an element with such ID";
@@ -73,6 +73,15 @@ public class GlobalExceptionHandler {
     public ApiError handleNonAccessibleComment(CommentNotAccessibleException e) {
         String code = "ILLEGAL_COMMENT_STATE";
         String message = "Non accessible comment";
+
+        return new ApiError(code, message, null);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(UnknownReactionTypeException.class)
+    public ApiError handleUnknownReactionType(UnknownReactionTypeException e) {
+        String code = "UNKNOWN_REACTION";
+        String message = "No such reaction";
 
         return new ApiError(code, message, null);
     }

@@ -1,7 +1,7 @@
 package com.editorial.article.repository;
 
 import com.editorial.article.exception.ArticleNotFoundException;
-import com.editorial.article.model.Article;
+import com.editorial.article.model.entity.Article;
 import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,8 +12,6 @@ import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
 
-
-import org.junit.jupiter.api.Assertions;
 
 import static org.junit.jupiter.api.Assertions.*;
 

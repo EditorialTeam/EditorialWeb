@@ -1,7 +1,7 @@
 package com.editorial.article.service;
 
-import com.editorial.article.model.Article;
-import com.editorial.article.model.ArticleStatus;
+import com.editorial.article.model.entity.Article;
+import com.editorial.article.model.enums.ArticleStatus;
 import org.springframework.data.jpa.domain.Specification;
 
 public class ArticleSpecifications {
