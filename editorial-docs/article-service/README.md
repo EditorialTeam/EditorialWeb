@@ -259,6 +259,5 @@
 
 Обработанные сервисом ошибки содержат поля `code`, `message` и `errors`. Для ошибок полей `errors` содержит сообщения по каждому полю, в остальных случаях возвращается `{}` или `null`.
 
-Единый обработчик с параметром `Exception e` возвращает `404 NOT_FOUND` для `ArticleNotFoundException`, `CommentNotFoundException` и `ReactionNotFoundException`. Поле `message` содержит `Couldn't find an element with such ID`, поле `errors` — пустой объект.
 
 Попытка ответить на удалённый комментарий выбрасывает `IllegalStateException`, для которого отдельный обработчик не задан. Принадлежность родителя другой статье приводит к `403 NOT_ENOUGH_RIGHTS`.
