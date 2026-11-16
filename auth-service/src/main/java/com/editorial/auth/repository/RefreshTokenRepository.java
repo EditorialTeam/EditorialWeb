@@ -1,6 +1,6 @@
 package com.editorial.auth.repository;
 
-import com.editorial.auth.model.RefreshToken;
+import com.editorial.auth.model.entity.RefreshToken;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;

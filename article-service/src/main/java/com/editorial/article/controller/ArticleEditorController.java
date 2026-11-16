@@ -1,8 +1,8 @@
 package com.editorial.article.controller;
 
 import com.editorial.article.dto.article.RejectReasonRequest;
-import com.editorial.article.model.Article;
-import com.editorial.article.model.ModerationDecision;
+import com.editorial.article.model.entity.Article;
+import com.editorial.article.model.enums.ModerationDecision;
 import com.editorial.article.service.ArticleService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;

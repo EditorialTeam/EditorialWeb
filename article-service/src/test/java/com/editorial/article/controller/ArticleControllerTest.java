@@ -2,7 +2,7 @@ package com.editorial.article.controller;
 
 import com.editorial.article.dto.article.CreateArticleRequest;
 import com.editorial.article.exception.ArticleNotFoundException;
-import com.editorial.article.model.Article;
+import com.editorial.article.model.entity.Article;
 import com.editorial.article.service.ArticleService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

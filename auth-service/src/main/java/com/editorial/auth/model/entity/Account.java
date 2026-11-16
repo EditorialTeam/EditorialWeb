@@ -1,5 +1,7 @@
-package com.editorial.auth.model;
+package com.editorial.auth.model.entity;
 
+import com.editorial.auth.model.enums.AccountRole;
+import com.editorial.auth.model.enums.AccountStatus;
 import jakarta.persistence.*;
 
 import java.time.Instant;

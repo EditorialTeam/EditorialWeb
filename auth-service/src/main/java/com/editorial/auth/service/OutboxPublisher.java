@@ -1,6 +1,6 @@
 package com.editorial.auth.service;
 
-import com.editorial.auth.model.OutboxEvent;
+import com.editorial.auth.model.entity.OutboxEvent;
 import com.editorial.auth.producer.RegistrationEventProducer;
 import com.editorial.auth.producer.event.ProfileCreationRequested;
 import com.editorial.auth.repository.OutboxRepository;
@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.support.SendResult;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import tools.jackson.core.JacksonException;
 import tools.jackson.databind.ObjectMapper;
 
 import java.util.List;

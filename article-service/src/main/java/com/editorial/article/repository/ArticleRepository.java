@@ -1,8 +1,7 @@
 package com.editorial.article.repository;
 
-import com.editorial.article.model.Article;
-import com.editorial.article.model.ArticleStatus;
-import com.editorial.article.service.ArticleService;
+import com.editorial.article.model.entity.Article;
+import com.editorial.article.model.enums.ArticleStatus;
 import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

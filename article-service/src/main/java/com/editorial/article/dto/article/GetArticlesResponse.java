@@ -1,6 +1,6 @@
 package com.editorial.article.dto.article;
 
-import com.editorial.article.model.ArticleStatus;
+import com.editorial.article.model.enums.ArticleStatus;
 
 import java.time.Instant;
 

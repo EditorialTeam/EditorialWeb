@@ -1,10 +1,9 @@
 package com.editorial.auth.consumer;
 
 import com.editorial.auth.consumer.event.ProfileRegistered;
-import com.editorial.auth.model.Account;
-import com.editorial.auth.model.AccountStatus;
+import com.editorial.auth.model.entity.Account;
+import com.editorial.auth.model.enums.AccountStatus;
 import com.editorial.auth.repository.AccountRepository;
-import com.editorial.auth.service.AuthService;
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;

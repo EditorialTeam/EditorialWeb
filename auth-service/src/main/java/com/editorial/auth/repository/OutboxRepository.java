@@ -1,6 +1,6 @@
 package com.editorial.auth.repository;
 
-import com.editorial.auth.model.OutboxEvent;
+import com.editorial.auth.model.entity.OutboxEvent;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;

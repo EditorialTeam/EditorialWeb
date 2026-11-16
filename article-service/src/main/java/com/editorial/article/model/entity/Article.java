@@ -1,5 +1,6 @@
-package com.editorial.article.model;
+package com.editorial.article.model.entity;
 
+import com.editorial.article.model.enums.ArticleStatus;
 import jakarta.persistence.*;
 
 import java.time.Instant;
