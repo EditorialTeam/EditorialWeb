@@ -16,7 +16,10 @@ public class SecurityConfig {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth.requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**").authenticated()
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/articles/*/comments/**").authenticated()
+                        .requestMatchers("/api/articles/*/reactions/**").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/articles", "/api/articles/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/articles/**", "/api/articles").hasAnyRole("AUTHOR", "EDITOR", "ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/api/articles/**").hasAnyRole("AUTHOR", "EDITOR", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/articles/**").hasAnyRole("AUTHOR", "EDITOR", "ADMIN")
