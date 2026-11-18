@@ -136,6 +136,8 @@ public class CommentService {
         if (foundComment.getAuthorAccountId() == authorId && request.content() != null) {
             foundComment.setContent(request.content());
             foundComment.setUpdatedAt(Instant.now());
+        } else {
+            throw new AccessDeniedException("Not enough rights to edit this.");
         }
 
         return new PatchComment(foundComment.getContent());

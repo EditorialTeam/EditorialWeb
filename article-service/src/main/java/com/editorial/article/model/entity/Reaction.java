@@ -2,6 +2,8 @@ package com.editorial.article.model.entity;
 
 import com.editorial.article.model.enums.ReactionType;
 import jakarta.persistence.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 @Entity
 @Table(name="reactions")
@@ -17,6 +19,7 @@ public class Reaction {
     @Column(name="author_account_id", nullable = false)
     private long authorAccountId;
 
+    @OnDelete(action = OnDeleteAction.CASCADE)
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name="article_id", nullable = false)
     private Article article;
