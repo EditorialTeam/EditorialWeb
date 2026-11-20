@@ -83,7 +83,8 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public List<PublicUserResponse> getProfilesById(BatchUsersRequest request) {
-        return repository.findAllByAccountIdIn(request.accountIds()).stream().map(profile ->
+        return repository.findAllByAccountIdIn(request.accountIds())
+                .stream().map(profile ->
                 new PublicUserResponse(profile.getAccountId(), profile.getDisplayName())).toList();
     }
 }
