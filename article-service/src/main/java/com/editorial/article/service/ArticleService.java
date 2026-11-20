@@ -43,7 +43,6 @@ public class ArticleService {
         if (!isPrivileged && !isOwnArticle) throw new AccessDeniedException("Not enough rights");
     }
 
-
     @Transactional(readOnly = true)
     public Page<GetArticlesResponse> getAll(Pageable request, ArticleStatus status, Long accountId) {
         Specification<Article> specification = Specification.allOf(ArticleSpecifications.hasAuthorAccountId(accountId).and(ArticleSpecifications.hasStatus(status)));

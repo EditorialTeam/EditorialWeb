@@ -1,4 +1,19 @@
 services:
+  minio:
+    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    command: server /data --console-address ":9001"
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    ports:
+      - "127.0.0.1:9001:9001"
+
+    volumes:
+      - minio_data:/data
+
+    restart: unless-stopped
   postgres-articles:
     image: postgres:18.6
     environment:
@@ -98,6 +113,16 @@ services:
     depends_on:
       - auth-service
 
+  file-service:
+    build: ./file-service
+    environment:
+      SERVER_PORT: 8080
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+    depends_on:
+      - minio
+
   secrets-gen:
     image: alpine/openssl:latest
     entrypoint: ["/bin/sh", "-ec"]
@@ -179,3 +204,4 @@ volumes:
   oauth_keys:
   oauth_secrets:
   kafka_data:
+  minio_data:
