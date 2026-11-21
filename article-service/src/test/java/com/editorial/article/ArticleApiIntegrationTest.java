@@ -3,6 +3,7 @@ package com.editorial.article;
 import com.editorial.article.client.UserProfileClient;
 import com.editorial.article.dto.article.CreateArticleRequest;
 import com.editorial.article.model.entity.Article;
+import com.editorial.article.model.enums.ArticleStatus;
 import com.editorial.article.repository.ArticleRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,6 +11,7 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
@@ -60,7 +62,8 @@ public class ArticleApiIntegrationTest {
         CreateArticleRequest request = new CreateArticleRequest("Integration Article Title", "Integration Article Content");
 
         mockMvc.perform(post("/api/articles")
-                        .with(jwt().jwt(builder -> builder.subject("42").claim("role", "AUTHOR")))
+                        .with(jwt().jwt(builder -> builder.subject("42").claim("role", "AUTHOR"))
+                                .authorities(new SimpleGrantedAuthority("ROLE_AUTHOR")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -73,13 +76,14 @@ public class ArticleApiIntegrationTest {
 
     @Test
     void shouldGetArticleById() throws Exception {
-        Article article = new Article("Saved Title", "Saved Content", 42L);
+        Article article = new Article("Saved Title", "Saved Content", 42L, ArticleStatus.DRAFT);
         Article saved = articleRepository.save(article);
 
         when(userProfileClient.getDisplayNames(any())).thenReturn(Map.of(42L, "Author 42"));
 
         mockMvc.perform(get("/api/articles/" + saved.getId())
-                        .with(jwt().jwt(builder -> builder.subject("42").claim("role", "AUTHOR"))))
+                        .with(jwt().jwt(builder -> builder.subject("42").claim("role", "AUTHOR"))
+                                .authorities(new SimpleGrantedAuthority("ROLE_AUTHOR"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(saved.getId()))
                 .andExpect(jsonPath("$.title").value("Saved Title"));

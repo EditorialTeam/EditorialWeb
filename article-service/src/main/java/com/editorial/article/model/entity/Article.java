@@ -43,6 +43,9 @@ public class Article {
         if (createdAt == null) {
             createdAt = Instant.now();
         }
+        if (status == null) {
+            status = ArticleStatus.DRAFT;
+        }
     }
 
     //для jpa
