@@ -25,6 +25,8 @@ public class User {
     @Column(name="created_at", nullable=false)
     private Instant createdAt;
 
+    @Column(name="avatar_object_key", columnDefinition = "text")
+    private String avatarObjectKey;
 
 
 
@@ -71,11 +73,19 @@ public class User {
         return profileDescription;
     }
 
+    public String getAvatarObjectKey() {
+        return avatarObjectKey;
+    }
+
     public void setProfileDescription(String profileDescription) {
         this.profileDescription = profileDescription;
     }
 
     public void setDisplayName(String displayName) {
         this.displayName = displayName;
+    }
+
+    public void setAvatarObjectKey(String avatarObjectKey) {
+        this.avatarObjectKey = avatarObjectKey;
     }
 }
