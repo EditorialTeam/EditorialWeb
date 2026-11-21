@@ -4,6 +4,7 @@ import com.editorial.article.dto.article.CreateArticleRequest;
 import com.editorial.article.dto.article.PatchArticleRequest;
 import com.editorial.article.dto.article.UpdateArticleRequest;
 import com.editorial.article.exception.ArticleNotFoundException;
+import com.editorial.article.model.enums.ArticleStatus;
 import com.editorial.article.model.entity.Article;
 import com.editorial.article.repository.ArticleRepository;
 import org.junit.jupiter.api.Test;
@@ -60,10 +61,10 @@ public class ArticleServiceTest {
 
         UpdateArticleRequest request = new UpdateArticleRequest("New title", "New content");
 
-        Article oldArticle = new Article("Old title", "Old content", 1L);
+        Article oldArticle = new Article("Old title", "Old content", 1L, ArticleStatus.DRAFT);
         oldArticle.setId(5L);
 
-        when(repository.findById(5L)).thenReturn(Optional.of(oldArticle));
+        when(repository.findByIdForUpdate(5L)).thenReturn(Optional.of(oldArticle));
 
         Article result = service.updateById(request, 5L, 1L, "ADMIN");
 
@@ -79,7 +80,7 @@ public class ArticleServiceTest {
 
         PatchArticleRequest request = new PatchArticleRequest("New title", null);
 
-        Article oldArticle = new Article("Old title", "Old content", 1L);
+        Article oldArticle = new Article("Old title", "Old content", 1L, ArticleStatus.DRAFT);
         oldArticle.setId(5L);
 
         when(repository.findById(5L)).thenReturn(Optional.of(oldArticle));
@@ -97,7 +98,7 @@ public class ArticleServiceTest {
     public void shouldDelete() {
         ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
 
-        Article expected = new Article("Test", "Test", 1L);
+        Article expected = new Article("Test", "Test", 1L, ArticleStatus.DRAFT);
         expected.setId(5L);
 
         when(repository.findById(5L)).thenReturn(Optional.of(expected));
