@@ -1,0 +1,97 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: 🧪 Run Tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Run Maven Tests (Unit & Integration)
+        run: |
+          mvn -B clean test
+
+      - name: Build and Test Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run build
+
+  deploy:
+    name: 🚀 Deploy to Server
+    needs: [test]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            set -e
+
+            DEPLOY_DIR="/opt/editorial"
+
+            echo "=== Ensuring deployment directory exists ==="
+            sudo mkdir -p "$DEPLOY_DIR"
+            sudo chown -R $USER:$USER "$DEPLOY_DIR"
+            cd "$DEPLOY_DIR"
+
+            echo "=== Syncing repository from GitHub ==="
+            if [ -d .git ]; then
+              git remote set-url origin https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git
+              git fetch origin main
+              git reset --hard origin/main
+            else
+              git clone -b main https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git .
+            fi
+
+            echo "=== Writing .env file from GitHub Secrets ==="
+            cat << 'EOF' > .env
+            ARTICLE_DB_PASSWORD=${{ secrets.ARTICLE_DB_PASSWORD }}
+            USER_DB_PASSWORD=${{ secrets.USER_DB_PASSWORD }}
+            AUTH_DB_PASSWORD=${{ secrets.AUTH_DB_PASSWORD }}
+            MINIO_ROOT_USER=${{ secrets.MINIO_ROOT_USER }}
+            MINIO_ROOT_PASSWORD=${{ secrets.MINIO_ROOT_PASSWORD }}
+            EOF
+            chmod 600 .env
+
+            echo "=== Rebuilding and restarting Docker containers ==="
+            docker compose down --remove-orphans || true
+            docker compose up -d --build --remove-orphans
+
+            echo "=== Checking container statuses ==="
+            sleep 10
+            docker compose ps
+
+            echo "=== Cleaning up dangling images ==="
+            docker image prune -f
+
+            echo "=== Deployment finished successfully! ==="

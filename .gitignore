@@ -42,3 +42,11 @@ article-service/.env
 user-service/.en
 .env
 **/.env
+
+# Node.js / Frontend
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+*.tsbuildinfo
+.npm
