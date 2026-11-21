@@ -1,0 +1,210 @@
+services:
+  minio:
+    image: ghcr.io/coollabsio/minio:RELEASE.2025-10-15T17-29-55Z
+    command: server /data --console-address ":9001"
+
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+
+    ports:
+      - "127.0.0.1:9001:9001"
+
+    volumes:
+      - minio_data:/data
+
+    restart: unless-stopped
+  postgres-articles:
+    image: postgres:18.6
+    environment:
+      POSTGRES_DB: editorial_articles
+      POSTGRES_USER: editorial
+      POSTGRES_PASSWORD: ${ARTICLE_DB_PASSWORD}
+    ports:
+      - "5434:5432"
+    volumes:
+      - articles_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U editorial -d editorial_articles"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  postgres-users:
+    image: postgres:18.6
+    environment:
+      POSTGRES_DB: editorial_users
+      POSTGRES_USER: editorial
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
+    ports:
+      - "5435:5432"
+    volumes:
+      - users_pgdata:/var/lib/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U editorial -d editorial_users"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  article-service:
+    build:
+      context: ./article-service
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-articles:5432/editorial_articles
+      SPRING_DATASOURCE_USERNAME: editorial
+      SPRING_DATASOURCE_PASSWORD: ${ARTICLE_DB_PASSWORD}
+      JWT_JWK_SET_URI: http://auth-service:8080/.well-known/jwks.json
+    depends_on:
+      postgres-articles:
+        condition: service_healthy
+
+  user-service:
+    build:
+      context: ./user-service
+    environment:
+      SERVER_PORT: 8080
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-users:5432/editorial_users
+      SPRING_DATASOURCE_USERNAME: editorial
+      SPRING_DATASOURCE_PASSWORD: ${USER_DB_PASSWORD}
+      JWT_JWK_SET_URI: http://auth-service:8080/.well-known/jwks.json
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+    depends_on:
+      postgres-users:
+        condition: service_healthy
+
+  postgres-auth:
+      image: postgres:18.6
+      environment:
+        POSTGRES_DB: editorial_auth
+        POSTGRES_USER: editorial
+        POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
+      ports:
+        - "5436:5432"
+      volumes:
+        - auth_pgdata:/var/lib/postgresql
+      healthcheck:
+        test: [ "CMD-SHELL", "pg_isready -U editorial -d editorial_auth" ]
+        interval: 5s
+        timeout: 5s
+        retries: 10
+
+  auth-service:
+      build: ./auth-service
+      environment:
+        SERVER_PORT: 8080
+        SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-auth:5432/editorial_auth
+        SPRING_DATASOURCE_USERNAME: editorial
+        SPRING_DATASOURCE_PASSWORD: ${AUTH_DB_PASSWORD}
+        SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+        APP_JWT_KEYS_DIRECTORY: /app/keys
+      volumes:
+        - auth_keys:/app/keys:ro
+      depends_on:
+        postgres-auth:
+          condition: service_healthy
+        secrets-gen:
+          condition: service_completed_successfully
+
+  gateway-service:
+    build: ./gateway-service
+    ports:
+      - "8080:8080"
+    environment:
+      SERVER_PORT: 8080
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost,http://localhost:80,http://localhost:5173,http://127.0.0.1}
+    depends_on:
+      - auth-service
+
+  file-service:
+    build: ./file-service
+    environment:
+      SERVER_PORT: 8080
+      MINIO_URL: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD}
+    depends_on:
+      - minio
+
+  secrets-gen:
+    image: alpine/openssl:latest
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - |
+        set -eu
+        for dir in /keys/auth /keys/oauth; do
+          if [ -f "$$dir/private.pem" ] && [ -f "$$dir/public.pem" ]; then
+            echo "RSA keys already exist in $$dir"
+  
+          elif [ ! -e "$$dir/private.pem" ] && [ ! -e "$$dir/public.pem" ]; then
+            echo "Generating RSA keys in $$dir"
+  
+            umask 077
+  
+            openssl genpkey \
+              -algorithm RSA \
+              -pkeyopt rsa_keygen_bits:3072 \
+              -out "$$dir/private.pem"
+  
+            openssl pkey \
+              -in "$$dir/private.pem" \
+              -pubout \
+              -out "$$dir/public.pem"
+  
+            echo "RSA keys generated"
+  
+          else
+            echo "Incomplete RSA key pair in $$dir" >&2
+            exit 1
+          fi
+        done
+        
+        if [ ! -f /secrets/client_secret ]; then
+          umask 077
+          openssl rand -hex 32 > /secrets/client_secret
+          echo "OAuth2 client secret generated"
+        else
+          echo "OAuth2 client secret already exists"
+        fi
+
+    volumes:
+      - auth_keys:/keys/auth
+      - oauth_keys:/keys/oauth
+      - oauth_secrets:/secrets
+    restart: "no"
+
+  kafka:
+    image: apache/kafka:4.4.0
+    container_name: kafka
+    hostname: kafka
+    restart: unless-stopped
+
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+
+
+volumes:
+  articles_pgdata:
+  users_pgdata:
+  auth_pgdata:
+  auth_keys:
+  oauth_keys:
+  oauth_secrets:
+  kafka_data:
+  minio_data:

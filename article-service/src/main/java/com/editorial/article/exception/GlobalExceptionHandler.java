@@ -1,8 +1,9 @@
 package com.editorial.article.exception;
 
-import com.editorial.article.dto.ApiError;
+import com.editorial.article.dto.error.ApiError;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -14,6 +15,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ApiError handleValidationError(MethodArgumentNotValidException e) {
         String code = "Validation error";
@@ -39,12 +41,49 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler(ArticleNotFoundException.class)
-    public ApiError handleNotFoundArticle(ArticleNotFoundException e) {
-        String code = "ARTICLE_NOT_FOUND";
-        String message = "Couldn't find an article with such ID";
+    @ExceptionHandler({ArticleNotFoundException.class, CommentNotFoundException.class, ReactionNotFoundException.class})
+    public ApiError handleNotFoundArticle(Exception e) {
+        String code = "NOT_FOUND";
+        String message = "Couldn't find an element with such ID";
         Map<String, String> errors = Map.of();
 
         return new ApiError(code, message, errors);
     }
+
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    @ExceptionHandler(AccessDeniedException.class)
+    public ApiError handleNotProperRights(AccessDeniedException e) {
+        String code = "NOT_ENOUGH_RIGHTS";
+        String message = "Not enough rights to edit this article";
+
+        return new ApiError(code, message, null);
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(IncorrectArticleStatusException.class)
+    public ApiError handleIncorrectStatus(IncorrectArticleStatusException e) {
+        String code = "INCORRECT_ARTICLE_STATUS";
+        String message = "Can't submit for review";
+
+        return new ApiError(code, message, null);
+    }
+
+    @ResponseStatus(HttpStatus.CONFLICT)
+    @ExceptionHandler(CommentNotAccessibleException.class)
+    public ApiError handleNonAccessibleComment(CommentNotAccessibleException e) {
+        String code = "ILLEGAL_COMMENT_STATE";
+        String message = "Non accessible comment";
+
+        return new ApiError(code, message, null);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(UnknownReactionTypeException.class)
+    public ApiError handleUnknownReactionType(UnknownReactionTypeException e) {
+        String code = "UNKNOWN_REACTION";
+        String message = "No such reaction";
+
+        return new ApiError(code, message, null);
+    }
+
 }

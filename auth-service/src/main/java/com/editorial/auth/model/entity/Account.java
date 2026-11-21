@@ -1,0 +1,93 @@
+package com.editorial.auth.model.entity;
+
+import com.editorial.auth.model.enums.AccountRole;
+import com.editorial.auth.model.enums.AccountStatus;
+import jakarta.persistence.*;
+
+import java.time.Instant;
+
+@Entity
+@Table(name = "accounts")
+public class Account {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false, unique = true, length = 50)
+    private String username;
+
+    @Column(nullable = false, unique = true, length = 200)
+    private String email;
+
+    @Column(name = "password_hash", nullable = false)
+    private String passwordHash;
+
+    @Column(nullable = false, updatable = false)
+    private Instant createdAt;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private AccountRole role;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable=false)
+    private AccountStatus status;
+
+    @PrePersist
+    protected void onCreate() {
+        if (createdAt == null) {
+            createdAt = Instant.now();
+        }
+    }
+
+    protected Account() {
+    }
+
+    public Account(String username, String email, String passwordHash, AccountRole role, AccountStatus status) {
+        this.username = username;
+        this.email = email;
+        this.passwordHash = passwordHash;
+        this.role = role;
+        this.status = status;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public String getPasswordHash() {
+        return passwordHash;
+    }
+
+    public AccountRole getRole() {
+        return role;
+    }
+
+    public AccountStatus getStatus() {return status;}
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public void setRole(AccountRole role) {
+        this.role = role;
+    }
+
+    public void setStatus(AccountStatus status) {this.status = status;}
+}

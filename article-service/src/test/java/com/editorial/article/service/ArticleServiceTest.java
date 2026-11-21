@@ -1,53 +1,51 @@
 package com.editorial.article.service;
 
-import com.editorial.article.dto.CreateArticleRequest;
-import com.editorial.article.dto.UpdateArticleRequest;
+import com.editorial.article.dto.article.CreateArticleRequest;
+import com.editorial.article.dto.article.PatchArticleRequest;
+import com.editorial.article.dto.article.UpdateArticleRequest;
 import com.editorial.article.exception.ArticleNotFoundException;
-import com.editorial.article.model.Article;
+import com.editorial.article.model.enums.ArticleStatus;
+import com.editorial.article.model.entity.Article;
 import com.editorial.article.repository.ArticleRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
-import java.util.function.BooleanSupplier;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
+
 public class ArticleServiceTest {
-    @Test
-    public void shouldReturnArticleWhenExists() {
-        ArticleRepository repository = mock(ArticleRepository.class);
-        ArticleService service = new ArticleService(repository);
-        Article testArticle = new Article("", "");
-        when(repository.findById(0L)).thenReturn(Optional.of(testArticle));
+    @Mock
+    ArticleRepository repository;
 
-        Article result = service.findById(0L);
+    @InjectMocks
+    ArticleService service;
 
-        assertSame(testArticle, result);
-    }
 
     @Test
     public void shouldThrowWhenArticleNotFound() {
-        ArticleRepository repository = mock(ArticleRepository.class);
-        ArticleService service = new ArticleService(repository);
         when(repository.findById(999L)).thenReturn(Optional.empty());
         assertThrows(ArticleNotFoundException.class, () -> {
-            service.findById(999L);
+            service.findById(999L, "ADMIN", 5L);
         });
     }
 
     @Test
     public void shouldCreateArticle() {
         ArgumentCaptor<Article> captor = ArgumentCaptor.forClass(Article.class);
-        ArticleRepository repository = mock(ArticleRepository.class);
-        ArticleService service = new ArticleService(repository);
         CreateArticleRequest request = new CreateArticleRequest("Test", "Test");
-        Article testArticle = new Article(request.title(), request.content());
+        Article testArticle = new Article(request.title(), request.content(), 1L);
         testArticle.setId(1L);
         when(repository.save(any(Article.class))).thenReturn(testArticle);
 
-        Article result = service.add(request);
+        Article result = service.add(request, 1L);
 
         assertSame(testArticle, result);
 
@@ -60,22 +58,63 @@ public class ArticleServiceTest {
 
     @Test
     public void shouldUpdateArticle() {
-        ArticleRepository repository = mock(ArticleRepository.class);
-        ArticleService service = new ArticleService(repository);
 
         UpdateArticleRequest request = new UpdateArticleRequest("New title", "New content");
 
-        Article oldArticle = new Article("Old title", "Old content");
+        Article oldArticle = new Article("Old title", "Old content", 1L, ArticleStatus.DRAFT);
         oldArticle.setId(5L);
 
-        when(repository.findById(5L)).thenReturn(Optional.of(oldArticle));
+        when(repository.findByIdForUpdate(5L)).thenReturn(Optional.of(oldArticle));
 
-        Article result = service.updateById(request, 5L);
+        Article result = service.updateById(request, 5L, 1L, "ADMIN");
 
         assertEquals(oldArticle, result);
         assertEquals(request.title(), result.getTitle());
         assertEquals(request.content(), result.getContent());
 
         verify(repository, never()).save(any(Article.class));
+    }
+
+    @Test
+    public void shouldUpdateOnlyTitle() {
+
+        PatchArticleRequest request = new PatchArticleRequest("New title", null);
+
+        Article oldArticle = new Article("Old title", "Old content", 1L, ArticleStatus.DRAFT);
+        oldArticle.setId(5L);
+
+        when(repository.findById(5L)).thenReturn(Optional.of(oldArticle));
+
+        Article result = service.patchById(request, 5L, 1L, "ADMIN");
+
+        assertEquals(request.title(), result.getTitle());
+        assertEquals("Old content", result.getContent());
+        assertSame(oldArticle, result);
+
+        verify(repository).findById(5L);
+    }
+
+    @Test
+    public void shouldDelete() {
+        ArgumentCaptor<Long> captor = ArgumentCaptor.forClass(Long.class);
+
+        Article expected = new Article("Test", "Test", 1L, ArticleStatus.DRAFT);
+        expected.setId(5L);
+
+        when(repository.findById(5L)).thenReturn(Optional.of(expected));
+
+        service.delete(5L, 1L, "ADMIN");
+        verify(repository).deleteById(captor.capture());
+
+        assertSame(captor.getValue(), expected.getId());
+    }
+
+    @Test
+    public void shouldThrowWhenNotFoundOnDelete() {
+        when(repository.findById(999L)).thenReturn(Optional.empty());
+
+        assertThrows(ArticleNotFoundException.class, () -> service.delete(999L, 1L, "ADMIN"));
+
+        verify(repository, never()).deleteById(any(Long.class));
     }
 }

@@ -10,6 +10,10 @@
     <packaging>pom</packaging>
     <modules>
         <module>article-service</module>
+        <module>user-service</module>
+        <module>auth-service</module>
+        <module>gateway-service</module>
+        <module>file-service</module>
     </modules>
     <properties>
         <maven.compiler.source>26</maven.compiler.source>

@@ -1,16 +1,23 @@
 package com.editorial.article.controller;
 
-import com.editorial.article.dto.CreateArticleRequest;
-import com.editorial.article.dto.PatchArticleRequest;
-import com.editorial.article.dto.UpdateArticleRequest;
-import com.editorial.article.model.Article;
+import com.editorial.article.dto.article.CreateArticleRequest;
+import com.editorial.article.dto.article.GetArticlesResponse;
+import com.editorial.article.dto.article.PatchArticleRequest;
+import com.editorial.article.dto.article.UpdateArticleRequest;
+import com.editorial.article.model.entity.Article;
+import com.editorial.article.model.enums.ArticleStatus;
 import com.editorial.article.service.ArticleService;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
+import java.util.Objects;
 
 @RestController
 @RequestMapping("/api/articles")
@@ -21,31 +28,77 @@ public class ArticleController {
     }
 
     @GetMapping
-    public List<Article> getArticles() {
-        return service.getAll();
+    public ResponseEntity<Page<GetArticlesResponse>> getArticlesPublished(
+            @RequestParam(required = false) ArticleStatus status,
+            @RequestParam(required = false) Long authorAccountId,
+            @Min(0)@RequestParam(name="page", defaultValue = "0") int page,
+            @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size) {
+        Pageable request = PageRequest.of(page, size,
+                Sort.by("id").ascending());
+
+        return ResponseEntity.ok(service.getAll(request, status, authorAccountId));
+    }
+
+    @GetMapping("/my")
+    public ResponseEntity<Page<Article>> getMyArticles(@Min(0) @RequestParam(name="page", defaultValue = "0") int page,
+                                                       @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size,
+                                                       @AuthenticationPrincipal Jwt jwt) {
+        Pageable request = PageRequest.of(page, size, Sort.by("createdAt").ascending());
+
+        return ResponseEntity.ok(service.getMy(request, Long.parseLong(jwt.getSubject())));
     }
 
     @GetMapping("/{id}")
-    public Article getArticleById(@PathVariable long id) {
-        return service.findById(id);
+    public GetArticlesResponse getArticleById(@PathVariable long id,
+                                  @AuthenticationPrincipal Jwt jwt) {
+        return service.findById(id, jwt.getClaimAsString("role"), Long.parseLong(jwt.getSubject()));
     }
 
     @PostMapping
-    public ResponseEntity<Article> addArticle(@Valid @RequestBody CreateArticleRequest articleRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.add(articleRequest));
+    public ResponseEntity<Article> addArticle(@Valid @RequestBody CreateArticleRequest articleRequest,
+                                              @AuthenticationPrincipal Jwt jwt) {
+        Long accountId = Long.valueOf(Objects.requireNonNull(jwt.getSubject()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.add(articleRequest, accountId));
     }
     @PutMapping("/{id}")
-    public Article updateArticleById(@Valid @RequestBody UpdateArticleRequest request, @PathVariable long id) {
-        return service.updateById(request, id);
+    public Article updateArticleById(@Valid @RequestBody UpdateArticleRequest request, @PathVariable long id,
+                                     @AuthenticationPrincipal Jwt jwt) {
+        Long accountId = Long.valueOf(Objects.requireNonNull(jwt.getSubject()));
+        String role = jwt.getClaimAsString("role");
+        return service.updateById(request, id, accountId, role);
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
-    public void deleteArticleById(@PathVariable long id) {
-        service.delete(id);
+    public void deleteArticleById(@PathVariable long id, @AuthenticationPrincipal Jwt jwt)
+    {
+        service.delete(id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())), jwt.getClaimAsString("role"));
     }
+
     @PatchMapping("/{id}")
-    public ResponseEntity<Article> patchArticleById(@Valid @RequestBody PatchArticleRequest request, @PathVariable long id) {
-        return ResponseEntity.ok(service.patchById(request, id));
+    public ResponseEntity<Article> patchArticleById(@Valid @RequestBody PatchArticleRequest request, @PathVariable long id,
+                                                    @AuthenticationPrincipal Jwt jwt) {
+        return ResponseEntity.ok(service.patchById(request, id, Long.parseLong(Objects.requireNonNull(jwt.getSubject())), jwt.getClaimAsString("role")));
+    }
+
+    @PostMapping("/{id}/submit")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void submitForReview(@PathVariable long id,
+                                                @AuthenticationPrincipal Jwt jwt) {
+        service.submitForReview(id, Long.parseLong(jwt.getSubject()));
+    }
+
+    @PostMapping("/{id}/archive")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void archive(@PathVariable long id,
+                        @AuthenticationPrincipal Jwt jwt) {
+        service.archiveArticle(id, Long.parseLong(jwt.getSubject()), jwt.getClaimAsString("role"));
+    }
+
+    @PostMapping("/{id}/withdraw-from-review")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void withdraw(@PathVariable long id,
+                         @AuthenticationPrincipal Jwt jwt) {
+        service.withdrawReview(id, Long.parseLong(jwt.getSubject()), jwt.getClaimAsString("role"));
     }
 }

@@ -1,0 +1,6 @@
+ALTER TABLE articles
+    ADD COLUMN status VARCHAR(30) NOT NULL DEFAULT 'DRAFT',
+    ADD COLUMN created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    ADD COLUMN published_at TIMESTAMPTZ,
+    ADD COLUMN updated_at TIMESTAMPTZ,
+    ADD COLUMN rejection_reason TEXT;
