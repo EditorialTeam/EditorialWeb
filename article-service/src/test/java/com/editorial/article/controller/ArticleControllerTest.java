@@ -69,7 +69,7 @@ public class ArticleControllerTest {
                         .with(jwt().jwt(builder -> builder.subject("5").claim("role", "ADMIN"))
                                 .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
                 .andExpect(status().isNotFound())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("ARTICLE_NOT_FOUND"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.code").value("NOT_FOUND"));
     }
 
     @Test
