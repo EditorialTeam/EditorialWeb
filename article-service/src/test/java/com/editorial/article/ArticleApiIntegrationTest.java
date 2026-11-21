@@ -60,7 +60,7 @@ public class ArticleApiIntegrationTest {
         CreateArticleRequest request = new CreateArticleRequest("Integration Article Title", "Integration Article Content");
 
         mockMvc.perform(post("/api/articles")
-                        .with(jwt().subject("42").claim("role", "AUTHOR"))
+                        .with(jwt().jwt(builder -> builder.subject("42").claim("role", "AUTHOR")))
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isCreated())
@@ -79,7 +79,7 @@ public class ArticleApiIntegrationTest {
         when(userProfileClient.getDisplayNames(any())).thenReturn(Map.of(42L, "Author 42"));
 
         mockMvc.perform(get("/api/articles/" + saved.getId())
-                        .with(jwt().subject("42").claim("role", "AUTHOR")))
+                        .with(jwt().jwt(builder -> builder.subject("42").claim("role", "AUTHOR"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(saved.getId()))
                 .andExpect(jsonPath("$.title").value("Saved Title"));
