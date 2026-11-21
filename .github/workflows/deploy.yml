@@ -39,6 +39,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           passphrase: ${{ secrets.SERVER_SSH_PASSPHRASE }}
           port: ${{ secrets.SERVER_PORT || 22 }}
+          command_timeout: 30m
           script: |
             set -e
 
@@ -68,9 +69,11 @@ jobs:
             EOF
             chmod 600 .env
 
-            echo "=== Rebuilding and restarting Docker containers ==="
-            docker compose down --remove-orphans || true
-            docker compose up -d --build --remove-orphans
+            echo "=== Building Docker images ==="
+            docker compose build
+
+            echo "=== Starting Docker containers ==="
+            docker compose up -d --remove-orphans
 
             echo "=== Checking container statuses ==="
             sleep 10
