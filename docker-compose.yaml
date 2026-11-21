@@ -113,15 +113,6 @@ services:
     depends_on:
       - auth-service
 
-  frontend:
-    build:
-      context: ./frontend
-    ports:
-      - "80:80"
-    depends_on:
-      - gateway-service
-    restart: unless-stopped
-
   file-service:
     build: ./file-service
     environment:
