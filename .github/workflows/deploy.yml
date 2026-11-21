@@ -42,11 +42,10 @@ jobs:
           script: |
             set -e
 
-            DEPLOY_DIR="/opt/editorial"
+            DEPLOY_DIR="$HOME/editorial"
 
             echo "=== Ensuring deployment directory exists ==="
-            sudo mkdir -p "$DEPLOY_DIR"
-            sudo chown -R $USER:$USER "$DEPLOY_DIR"
+            mkdir -p "$DEPLOY_DIR"
             cd "$DEPLOY_DIR"
 
             echo "=== Syncing repository from GitHub ==="
