@@ -2,7 +2,10 @@ package com.editorial.file.service;
 
 import com.editorial.file.configuration.MinioConfig;
 import com.editorial.file.configuration.MinioProperties;
+import com.editorial.file.exception.FileStorageException;
+import com.editorial.file.exception.UploadedFileNotFoundException;
 import com.editorial.file.model.enums.FileCategory;
+import io.minio.errors.ErrorResponseException;
 import org.apache.tika.Tika;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -11,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import io.minio.*;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Objects;
@@ -32,14 +36,14 @@ public class FileStorageService {
     }
 
     public String upload(MultipartFile file, FileCategory category, long entityId) throws IOException {
-        if (file.isEmpty() || file.getSize() > MAX_FILE_SIZE) throw new IllegalArgumentException("File is empty or too big");
+        if (file.isEmpty() || file.getSize() > MAX_FILE_SIZE) throw new FileStorageException("File is empty or too big");
 
         String detectedType;
 
         try (InputStream inputStream = file.getInputStream()) {
             detectedType = tika.detect(inputStream);
         } catch(Exception e) {
-            throw new IllegalStateException("Unsupported file", e);
+            throw new FileStorageException("Unsupported file");
         }
 
         String extension = resolveExtension(detectedType);
@@ -56,7 +60,41 @@ public class FileStorageService {
             );
             return objectKey;
         } catch (Exception e) {
-            throw new IllegalStateException("Failed to upload file", e);
+            throw new FileStorageException("Failed to upload file");
+        }
+    }
+
+    public InputStream download(String objectKey) {
+        if (objectKey == null || objectKey.isBlank()) throw new IllegalArgumentException("Blank or null key");
+
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(minioProperties.bucket())
+                            .object(objectKey)
+                            .build()
+            );
+        }
+        catch (ErrorResponseException e) {
+            if ("NoSuchKey".equals(e.errorResponse().code())) throw new UploadedFileNotFoundException();
+            throw new FileStorageException("File couldn't be downloaded");
+        } catch (Exception e) {
+            throw new FileStorageException();
+        }
+    }
+
+    public void delete(String objectKey) {
+        if (objectKey == null || objectKey.isBlank()) throw new IllegalArgumentException();
+
+        try {
+            minioClient.removeObject(
+                    RemoveObjectArgs.builder()
+                            .bucket(minioProperties.bucket())
+                            .object(objectKey)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new FileStorageException("Couldn't delete file");
         }
     }
 
