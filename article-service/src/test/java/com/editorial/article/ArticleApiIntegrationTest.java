@@ -85,7 +85,7 @@ public class ArticleApiIntegrationTest {
                         .with(jwt().jwt(builder -> builder.subject("42").claim("role", "AUTHOR"))
                                 .authorities(new SimpleGrantedAuthority("ROLE_AUTHOR"))))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(saved.getId()))
+                .andExpect(jsonPath("$.articleId").value(saved.getId()))
                 .andExpect(jsonPath("$.title").value("Saved Title"));
     }
 }
