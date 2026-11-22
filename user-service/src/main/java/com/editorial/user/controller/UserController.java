@@ -45,9 +45,12 @@ public class UserController {
 
     @GetMapping("/me/avatar")
     public ResponseEntity<byte[]> getAvatar(@AuthenticationPrincipal Jwt jwt) {
+        ResponseEntity<byte[]> response = service.getAvatar(Long.parseLong(jwt.getSubject()));
+
+
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_PNG)
-                .body(service.getAvatar(Long.parseLong(jwt.getSubject())));
+                .contentType(response.getHeaders().getContentType())
+                .body(response.getBody());
     }
 
 }

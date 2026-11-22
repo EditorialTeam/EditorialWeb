@@ -132,7 +132,7 @@ public class UserService {
         return new UploadFileResponse(avatarObjectKey);
     }
 
-    public byte[] getAvatar(long accountId) {
+    public ResponseEntity<byte[]> getAvatar(long accountId) {
         User foundProfile = repository.findByAccountId(accountId).orElseThrow(UserNotFoundException::new);
 
         return restAvatarFileClient.getAvatar(foundProfile.getAvatarObjectKey());

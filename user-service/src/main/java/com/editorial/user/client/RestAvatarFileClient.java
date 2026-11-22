@@ -3,6 +3,7 @@ package com.editorial.user.client;
 import com.editorial.user.dto.client.UploadFileResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -58,7 +59,7 @@ public class RestAvatarFileClient {
         }
     }
 
-    public byte[] getAvatar(String objectKey) {
+    public ResponseEntity<byte[]> getAvatar(String objectKey) {
         try {
             return restClient.get()
                     .uri(uriBuilder -> uriBuilder
@@ -66,9 +67,9 @@ public class RestAvatarFileClient {
                             .queryParam("key", objectKey)
                             .build())
                     .retrieve()
-                    .body(byte[].class);
+                    .toEntity(byte[].class);
         } catch (RestClientException e) {
-            log.warn("Couldnt't retrieve avatar");
+            log.warn("Couldnt't retrieve avatar"); //говно ебаное доделать надо в !!!
             return null;
         }
     }
