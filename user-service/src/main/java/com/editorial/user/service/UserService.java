@@ -16,6 +16,7 @@ import com.editorial.user.repository.OutboxEventsRepository;
 import com.editorial.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.TransactionSynchronization;
@@ -129,5 +130,11 @@ public class UserService {
         }
 
         return new UploadFileResponse(avatarObjectKey);
+    }
+
+    public byte[] getAvatar(long accountId) {
+        User foundProfile = repository.findByAccountId(accountId).orElseThrow(UserNotFoundException::new);
+
+        return restAvatarFileClient.getAvatar(foundProfile.getAvatarObjectKey());
     }
 }

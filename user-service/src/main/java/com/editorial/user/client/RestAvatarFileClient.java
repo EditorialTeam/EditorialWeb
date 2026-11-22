@@ -57,4 +57,21 @@ public class RestAvatarFileClient {
             log.warn("Couldn't delete user's avatar picture", e);
         }
     }
+
+    public byte[] getAvatar(String objectKey) {
+        try {
+            return restClient.get()
+                    .uri(uriBuilder -> uriBuilder
+                            .path("/api/internal/files")
+                            .queryParam("key", objectKey)
+                            .build())
+                    .retrieve()
+                    .body(byte[].class);
+        } catch (RestClientException e) {
+            log.warn("Couldnt't retrieve avatar");
+            return null;
+        }
+    }
+
+
 }
