@@ -13,10 +13,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/files")
-public class FileStorageAvatarController {
+public class FileStoragePublicController {
     private final FileStorageService service;
 
-    public FileStorageAvatarController(FileStorageService service) {
+    public FileStoragePublicController(FileStorageService service) {
         this.service = service;
     }
 

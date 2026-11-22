@@ -4,6 +4,7 @@ import com.editorial.article.dto.client.BatchUsersRequest;
 import com.editorial.article.dto.client.PublicUserResponse;
 import com.editorial.article.dto.client.UserProfileInfoDto;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
@@ -15,7 +16,9 @@ import java.util.*;
 public class RestUserProfileClient implements UserProfileClient {
     private final RestClient restClient;
 
-    public RestUserProfileClient(RestClient restClient) {
+    public RestUserProfileClient(
+            @Qualifier("userServiceRestClient") RestClient restClient
+            ) {
         this.restClient = restClient;
     }
 

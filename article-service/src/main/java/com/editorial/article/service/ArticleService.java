@@ -29,6 +29,7 @@ import java.util.stream.Collectors;
 public class ArticleService {
     private final ArticleRepository repository;
     private final UserProfileClient userProfileClient;
+
     public ArticleService(ArticleRepository repository, UserProfileClient userProfileClient) {
         this.userProfileClient = userProfileClient;
         this.repository = repository;
