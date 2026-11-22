@@ -2,6 +2,7 @@ package com.editorial.article.client;
 
 import com.editorial.article.dto.client.BatchUsersRequest;
 import com.editorial.article.dto.client.PublicUserResponse;
+import com.editorial.article.dto.client.UserProfileInfoDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.stereotype.Component;
@@ -19,7 +20,7 @@ public class RestUserProfileClient implements UserProfileClient {
     }
 
     @Override
-    public Map<Long, String> getDisplayNames(Set<Long> accountIds) {
+    public Map<Long, UserProfileInfoDto> getUserProfileInfo(Set<Long> accountIds) {
         if (accountIds.isEmpty()) return Map.of();
 
         List<PublicUserResponse> response = null;
@@ -36,11 +37,14 @@ public class RestUserProfileClient implements UserProfileClient {
         }
 
 
-        Map<Long, String> returnMap = new HashMap<>();
+        Map<Long, UserProfileInfoDto> returnMap = new HashMap<>();
 
        if (response == null) return Map.of();
        for (PublicUserResponse element : response) {
-           returnMap.put(element.accountId(), element.displayName());
+           returnMap.put(element.accountId(), new UserProfileInfoDto(
+                   element.displayName(),
+                   element.avatarObjectKey()
+           ));
        }
 
        return returnMap;

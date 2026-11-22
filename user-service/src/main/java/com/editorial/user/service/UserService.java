@@ -106,7 +106,9 @@ public class UserService {
     public List<PublicUserResponse> getProfilesById(BatchUsersRequest request) {
         return repository.findAllByAccountIdIn(request.accountIds())
                 .stream().map(profile ->
-                new PublicUserResponse(profile.getAccountId(), profile.getDisplayName())).toList();
+                new PublicUserResponse(profile.getAccountId(),
+                        profile.getDisplayName(),
+                        profile.getAvatarObjectKey())).toList();
     }
 
     @Transactional

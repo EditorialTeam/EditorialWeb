@@ -1,6 +1,7 @@
 package com.editorial.article.service;
 
 import com.editorial.article.client.UserProfileClient;
+import com.editorial.article.dto.client.UserProfileInfoDto;
 import com.editorial.article.dto.comment.GetCommentsResponse;
 import com.editorial.article.dto.comment.PatchComment;
 import com.editorial.article.dto.comment.PostCommentRequest;
@@ -39,7 +40,7 @@ public class CommentService {
     }
 
     public Page<GetCommentsResponse> getCommentsResponses(Page<Comment> response, boolean isRoot) {
-        Map<Long, String> displayNames = client.getDisplayNames(response.getContent()
+        Map<Long, UserProfileInfoDto> userProfiles = client.getUserProfileInfo(response.getContent()
                 .stream()
                 .map(Comment::getAuthorAccountId).collect(Collectors.toSet()));
 
@@ -51,7 +52,7 @@ public class CommentService {
                                     comment.getArticle().getId(),
                                     comment.getParentComment().getId(),
                                     comment.getAuthorAccountId(),
-                                    displayNames.get(comment.getAuthorAccountId()),
+                                    userProfiles.get(comment.getAuthorAccountId()) == null ? null : userProfiles.get(comment.getAuthorAccountId()).displayName(),
                                     comment.getContent(),
                                     comment.getCreatedAt(),
                                     comment.getUpdatedAt(),
@@ -67,7 +68,7 @@ public class CommentService {
                                     comment.getArticle().getId(),
                                     null,
                                     comment.getAuthorAccountId(),
-                                    displayNames.get(comment.getAuthorAccountId()),
+                                    userProfiles.get(comment.getAuthorAccountId()) == null ? null : userProfiles.get(comment.getAuthorAccountId()).displayName(),
                                     comment.getContent(),
                                     comment.getCreatedAt(),
                                     comment.getUpdatedAt(),
