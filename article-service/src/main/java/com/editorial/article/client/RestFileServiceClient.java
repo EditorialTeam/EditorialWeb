@@ -1,16 +1,18 @@
 package com.editorial.article.client;
 
 import com.editorial.article.dto.client.UploadFileResponse;
+import com.editorial.article.exception.FileUploadException;
+import com.editorial.article.exception.InvalidFileRequestException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
-import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestClientResponseException;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.Objects;
 
 @Component
 @Slf4j
@@ -22,25 +24,25 @@ public class RestFileServiceClient {
     }
 
     public String uploadFile(long entityId, String category, MultipartFile file) {
-        MultipartBodyBuilder builder = new MultipartBodyBuilder();
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
 
-        builder.part("file", file.getResource());
-        builder.part("fileCategory", category); //cover or article file
-        builder.part("entityId", entityId);
+        body.add("file", file.getResource());
+        body.add("fileCategory", category); //cover or article file
+        body.add("entityId", entityId);
 
         try {
-            return Objects.requireNonNull(
-                            restClient
-                                    .post()
-                                    .uri("/api/internal/files")
-                                    .contentType(MediaType.MULTIPART_FORM_DATA)
-                                    .body(builder.build())
-                                    .retrieve()
-                                    .body(UploadFileResponse.class))
-                    .objectKey();
+            UploadFileResponse response = restClient
+                    .post()
+                    .uri("/api/internal/files")
+                    .contentType(MediaType.MULTIPART_FORM_DATA)
+                    .body(body)
+                    .retrieve()
+                    .body(UploadFileResponse.class);
+            if (response == null || response.objectKey() == null || response.objectKey().isBlank()) throw new FileUploadException("File service returned an empty key");
+            return response.objectKey();
         } catch (RestClientException e) {
             log.warn("Couldn't upload file", e);
-            return null;
+            throw new FileUploadException("Couldn't upload file", e);
         }
     }
 

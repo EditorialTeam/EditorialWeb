@@ -105,7 +105,7 @@ public class FileStorageService {
             case MediaType.IMAGE_PNG_VALUE -> ".png";
             case MediaType.IMAGE_GIF_VALUE -> ".gif";
             case "image/webp" -> ".webp";
-            default -> "";
+            default -> throw new FileStorageException("Unsupported image type");
         };
     }
 }

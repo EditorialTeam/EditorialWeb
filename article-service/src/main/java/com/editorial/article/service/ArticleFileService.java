@@ -4,6 +4,9 @@ import com.editorial.article.client.RestFileServiceClient;
 import com.editorial.article.dto.article.GetArticleImagesResponse;
 import com.editorial.article.exception.ArticleImageNotFoundException;
 import com.editorial.article.exception.ArticleNotFoundException;
+import com.editorial.article.exception.FileUploadException;
+import com.editorial.article.exception.IncorrectArticleStatusException;
+import com.editorial.article.exception.InvalidFileRequestException;
 import com.editorial.article.model.entity.Article;
 import com.editorial.article.model.entity.ArticleImage;
 import com.editorial.article.model.enums.ArticleStatus;
@@ -32,20 +35,33 @@ public class ArticleFileService {
         this.imageRepository = imageRepository;
     }
 
+    private void checkIfEditable(Article article, long accountId, String role) {
+        boolean isPrivileged = role.equals("ADMIN") || role.equals("EDITOR");
+        boolean isOwnArticle = role.equals("AUTHOR") && article.getAuthorAccountId() == accountId;
+
+        if (!isPrivileged && !isOwnArticle) throw new AccessDeniedException("Not enough rights");
+        if (article.getStatus() == ArticleStatus.PUBLISHED || article.getStatus() == ArticleStatus.ARCHIVED) throw new IncorrectArticleStatusException();
+        if (role.equals("AUTHOR") && article.getStatus() == ArticleStatus.PENDING_REVIEW) throw new AccessDeniedException("Article is in review");
+    }
+
+    private String uploadFile(long articleId, String category, MultipartFile file) {
+        String key = restFileServiceClient.uploadFile(articleId, category, file);
+        if (key == null || key.isBlank()) throw new FileUploadException("Couldn't upload file");
+        return key;
+    }
+
     @Transactional
     public String updateImage(long authorAccountId,
                               long articleId,
                               long imageId,
                               MultipartFile file,
                               String role) {
-        Article foundArticle = repository.findById(articleId).orElseThrow(ArticleNotFoundException::new);
-        ArticleImage foundImage = imageRepository.findById(imageId).orElseThrow(ArticleImageNotFoundException::new);
+        Article foundArticle = repository.findByIdForUpdate(articleId).orElseThrow(ArticleNotFoundException::new);
+        checkIfEditable(foundArticle, authorAccountId, role);
+        ArticleImage foundImage = imageRepository.findByIdForUpdate(imageId).orElseThrow(ArticleImageNotFoundException::new);
 
         if (foundImage.getArticle().getId() != articleId) throw new AccessDeniedException("Image doesn't belong to this article");
-        if ((foundArticle.getAuthorAccountId() != authorAccountId) && !role.equals("ADMIN") && !role.equals("EDITOR")) throw new AccessDeniedException("Not enough rights");
-
-        String key = restFileServiceClient.uploadFile(articleId, "ARTICLE_IMAGE", file);
-        if (key == null || key.isBlank()) throw new IllegalStateException("Couldn't upload file");
+        String key = uploadFile(articleId, "ARTICLE_IMAGE", file);
 
         String oldKey = foundImage.getObjectKey();
         foundImage.setObjectKey(key);
@@ -90,12 +106,12 @@ public class ArticleFileService {
                          MultipartFile file,
                          String category,
                          String role) {
-        Article foundArticle = repository.findById(articleId).orElseThrow(ArticleNotFoundException::new);
-
-        if ((foundArticle.getAuthorAccountId() != authorAccountId) && !role.equals("ADMIN") && !role.equals("EDITOR")) throw new AccessDeniedException("Not enough rights");
+        if (!"COVER".equals(category) && !"ARTICLE_IMAGE".equals(category)) throw new InvalidFileRequestException("Unknown file category");
+        Article foundArticle = repository.findByIdForUpdate(articleId).orElseThrow(ArticleNotFoundException::new);
+        checkIfEditable(foundArticle, authorAccountId, role);
 
         if (category.equals("COVER")) {
-            String key = restFileServiceClient.uploadFile(articleId, category, file);
+            String key = uploadFile(articleId, category, file);
             String oldKey = foundArticle.getCoverObjectKey();
 
             foundArticle.setCoverObjectKey(key);
@@ -112,22 +128,22 @@ public class ArticleFileService {
             }
             return key;
         } else if (category.equals("ARTICLE_IMAGE")) {
-            String key = restFileServiceClient.uploadFile(articleId, category, file);
+            String key = uploadFile(articleId, category, file);
             imageRepository.save(new ArticleImage(key, foundArticle));
 
             return key;
         }
 
-        throw new IllegalStateException("");
+        throw new InvalidFileRequestException("Unknown file category");
     }
 
     @Transactional
     public void delete(long authorAccountId, long articleId, long imageId, String role) {
-        Article foundArticle = repository.findById(articleId).orElseThrow(ArticleNotFoundException::new);
+        Article foundArticle = repository.findByIdForUpdate(articleId).orElseThrow(ArticleNotFoundException::new);
+        checkIfEditable(foundArticle, authorAccountId, role);
         ArticleImage foundImage = imageRepository.findById(imageId).orElseThrow(ArticleImageNotFoundException::new);
 
         if (foundImage.getArticle().getId() != articleId) throw new AccessDeniedException("Image doesn't belong to this article");
-        if ((foundArticle.getAuthorAccountId() != authorAccountId) && !role.equals("ADMIN") && !role.equals("EDITOR")) throw new AccessDeniedException("Not enough rights");
 
         String objectKey = foundImage.getObjectKey();
         imageRepository.delete(foundImage);
