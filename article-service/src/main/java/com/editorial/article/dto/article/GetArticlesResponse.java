@@ -9,6 +9,7 @@ import java.util.Map;
 public record GetArticlesResponse(long articleId,
                                   String title,
                                   String content,
+                                  String coverObjectKey,
                                   Map<Long, UserProfileInfoDto> authorInfo,
                                   ArticleStatus status,
                                   Instant createdAt,
