@@ -15,4 +15,9 @@ public class ClientConfig {
     public RestClient userServiceRestClient(RestClient.Builder builder) {
         return builder.baseUrl("http://user-service:8080").build();
     }
+
+    @Bean
+    public RestClient fileServiceRestClient(RestClient.Builder builder) {
+        return builder.baseUrl("http://file-service:8080").build();
+    }
 }

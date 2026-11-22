@@ -2,6 +2,7 @@ package com.editorial.article;
 
 import com.editorial.article.client.UserProfileClient;
 import com.editorial.article.dto.article.CreateArticleRequest;
+import com.editorial.article.dto.client.UserProfileInfoDto;
 import com.editorial.article.model.entity.Article;
 import com.editorial.article.model.enums.ArticleStatus;
 import com.editorial.article.repository.ArticleRepository;
@@ -79,13 +80,14 @@ public class ArticleApiIntegrationTest {
         Article article = new Article("Saved Title", "Saved Content", 42L, ArticleStatus.DRAFT);
         Article saved = articleRepository.save(article);
 
-        when(userProfileClient.getDisplayNames(any())).thenReturn(Map.of(42L, "Author 42"));
+        when(userProfileClient.getUserProfileInfo(any())).thenReturn(Map.of(42L, new UserProfileInfoDto("Author 42", null)));
 
         mockMvc.perform(get("/api/articles/" + saved.getId())
                         .with(jwt().jwt(builder -> builder.subject("42").claim("role", "AUTHOR"))
                                 .authorities(new SimpleGrantedAuthority("ROLE_AUTHOR"))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.articleId").value(saved.getId()))
-                .andExpect(jsonPath("$.title").value("Saved Title"));
+                .andExpect(jsonPath("$.title").value("Saved Title"))
+                .andExpect(jsonPath("$.authorInfo['42'].displayName").value("Author 42"));
     }
 }

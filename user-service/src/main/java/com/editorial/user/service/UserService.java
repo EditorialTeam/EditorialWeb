@@ -1,7 +1,9 @@
 package com.editorial.user.service;
 
+import com.editorial.user.client.RestAvatarFileClient;
 import com.editorial.user.dto.client.BatchUsersRequest;
 import com.editorial.user.dto.client.PublicUserResponse;
+import com.editorial.user.dto.client.UploadFileResponse;
 import com.editorial.user.dto.user.GetUserProfileResponse;
 import com.editorial.user.dto.user.PatchProfileRequest;
 import com.editorial.user.dto.user.PatchProfileResponse;
@@ -14,10 +16,16 @@ import com.editorial.user.repository.OutboxEventsRepository;
 import com.editorial.user.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+import org.springframework.web.client.RestClient;
+import org.springframework.web.multipart.MultipartFile;
 import tools.jackson.databind.ObjectMapper;
 
+import javax.security.auth.login.AccountNotFoundException;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,11 +34,17 @@ public class UserService {
     private final UserRepository repository;
     private final OutboxEventsRepository outboxRepository;
     private final ObjectMapper objectMapper;
+    private final RestAvatarFileClient restAvatarFileClient;
 
-    public UserService (UserRepository repository, OutboxEventsRepository outboxRepository, ObjectMapper objectMapper) {
+    public UserService (UserRepository repository,
+                        OutboxEventsRepository outboxRepository,
+                        ObjectMapper objectMapper,
+                        RestAvatarFileClient restAvatarFileClient
+                        ) {
         this.repository = repository;
         this.outboxRepository = outboxRepository;
         this.objectMapper = objectMapper;
+        this.restAvatarFileClient = restAvatarFileClient;
     }
 
     @Transactional
@@ -46,7 +60,13 @@ public class UserService {
     @Transactional(readOnly=true)
     public GetUserProfileResponse getUserProfile(Long accountId) {
         User foundProfile = repository.findByAccountId(accountId).orElseThrow(UserNotFoundException::new);
-        return new GetUserProfileResponse(foundProfile.getUsername(), foundProfile.getDisplayName(), foundProfile.getCreatedAt(), foundProfile.getAccountId(), foundProfile.getProfileDescription());
+        return new GetUserProfileResponse(
+                foundProfile.getUsername(),
+                foundProfile.getDisplayName(),
+                foundProfile.getCreatedAt(),
+                foundProfile.getAccountId(),
+                foundProfile.getProfileDescription(),
+                foundProfile.getAvatarObjectKey());
     }
 
     @Transactional(readOnly = true)
@@ -57,7 +77,8 @@ public class UserService {
                         account.getDisplayName(),
                         account.getCreatedAt(),
                         account.getAccountId(),
-                        account.getProfileDescription())
+                        account.getProfileDescription(),
+                        account.getAvatarObjectKey())
         );
     }
 
@@ -85,6 +106,37 @@ public class UserService {
     public List<PublicUserResponse> getProfilesById(BatchUsersRequest request) {
         return repository.findAllByAccountIdIn(request.accountIds())
                 .stream().map(profile ->
-                new PublicUserResponse(profile.getAccountId(), profile.getDisplayName())).toList();
+                new PublicUserResponse(profile.getAccountId(),
+                        profile.getDisplayName(),
+                        profile.getAvatarObjectKey())).toList();
+    }
+
+    @Transactional
+    public UploadFileResponse uploadAvatar(long accountId, MultipartFile file) {
+        User foundProfile = repository.findByAccountId(accountId).orElseThrow(UserNotFoundException::new);
+
+        String avatarObjectKey = restAvatarFileClient.uploadAvatar(accountId, file);
+        String oldAvatarObjectKey = foundProfile.getAvatarObjectKey();
+
+        foundProfile.setAvatarObjectKey(avatarObjectKey);;
+
+        if (oldAvatarObjectKey != null) {
+            TransactionSynchronizationManager.registerSynchronization(
+                    new TransactionSynchronization() {
+                        @Override
+                        public void afterCommit() {
+                            restAvatarFileClient.deleteAvatar(oldAvatarObjectKey);
+                        }
+                    }
+            );
+        }
+
+        return new UploadFileResponse(avatarObjectKey);
+    }
+
+    public ResponseEntity<byte[]> getAvatar(long accountId) {
+        User foundProfile = repository.findByAccountId(accountId).orElseThrow(UserNotFoundException::new);
+
+        return restAvatarFileClient.getAvatar(foundProfile.getAvatarObjectKey());
     }
 }

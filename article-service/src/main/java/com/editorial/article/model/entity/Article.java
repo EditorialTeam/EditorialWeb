@@ -38,6 +38,9 @@ public class Article {
     @Column(nullable = false)
     private ArticleStatus status;
 
+    @Column(name="cover_object_key", columnDefinition = "text")
+    private String coverObjectKey;
+
     @PrePersist
     protected void onCreated() {
         if (createdAt == null) {
@@ -95,6 +98,10 @@ public class Article {
         return publishedAt;
     }
 
+    public String getCoverObjectKey() {
+        return coverObjectKey;
+    }
+
     //testing
     public void setId(Long id) {
         this.id = id;
@@ -122,5 +129,9 @@ public class Article {
 
     public void setUpdatedAt(Instant updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    public void setCoverObjectKey(String coverObjectKey) {
+        this.coverObjectKey = coverObjectKey;
     }
 }

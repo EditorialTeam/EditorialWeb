@@ -41,7 +41,7 @@ public class GlobalExceptionHandler {
     }
 
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    @ExceptionHandler({ArticleNotFoundException.class, CommentNotFoundException.class, ReactionNotFoundException.class})
+    @ExceptionHandler({ArticleNotFoundException.class, ArticleImageNotFoundException.class, CommentNotFoundException.class, ReactionNotFoundException.class})
     public ApiError handleNotFoundArticle(Exception e) {
         String code = "NOT_FOUND";
         String message = "Couldn't find an element with such ID";
@@ -63,9 +63,21 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IncorrectArticleStatusException.class)
     public ApiError handleIncorrectStatus(IncorrectArticleStatusException e) {
         String code = "INCORRECT_ARTICLE_STATUS";
-        String message = "Can't submit for review";
+        String message = "Operation is not allowed for the current article status";
 
         return new ApiError(code, message, null);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(InvalidFileRequestException.class)
+    public ApiError handleInvalidFileRequest(InvalidFileRequestException e) {
+        return new ApiError("INVALID_FILE_REQUEST", e.getMessage(), null);
+    }
+
+    @ResponseStatus(HttpStatus.BAD_GATEWAY)
+    @ExceptionHandler(FileUploadException.class)
+    public ApiError handleFileUploadError(FileUploadException e) {
+        return new ApiError("FILE_UPLOAD_FAILED", "Couldn't upload file", null);
     }
 
     @ResponseStatus(HttpStatus.CONFLICT)

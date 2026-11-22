@@ -5,6 +5,7 @@ import com.editorial.article.dto.article.CreateArticleRequest;
 import com.editorial.article.dto.article.GetArticlesResponse;
 import com.editorial.article.dto.article.PatchArticleRequest;
 import com.editorial.article.dto.article.UpdateArticleRequest;
+import com.editorial.article.dto.client.UserProfileInfoDto;
 import com.editorial.article.exception.ArticleNotFoundException;
 import com.editorial.article.exception.IncorrectArticleStatusException;
 import com.editorial.article.model.entity.Article;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -27,6 +29,7 @@ import java.util.stream.Collectors;
 public class ArticleService {
     private final ArticleRepository repository;
     private final UserProfileClient userProfileClient;
+
     public ArticleService(ArticleRepository repository, UserProfileClient userProfileClient) {
         this.userProfileClient = userProfileClient;
         this.repository = repository;
@@ -51,14 +54,14 @@ public class ArticleService {
 
         Set<Long> authorIds = articles.getContent().stream().map(Article::getAuthorAccountId).collect(Collectors.toSet());
 
-        Map<Long, String> displayNames = userProfileClient.getDisplayNames(authorIds);
+        Map<Long, UserProfileInfoDto> userProfiles = userProfileClient.getUserProfileInfo(authorIds);
 
         return articles.map(article ->
                 new GetArticlesResponse(article.getId(),
-                        article.getAuthorAccountId(),
                         article.getTitle(),
                         article.getContent(),
-                        displayNames.get(article.getAuthorAccountId()),
+                        article.getCoverObjectKey(),
+                        Collections.singletonMap(article.getAuthorAccountId(), userProfiles.get(article.getAuthorAccountId())),
                         article.getStatus(),
                         article.getCreatedAt(),
                         article.getPublishedAt()));
@@ -83,12 +86,12 @@ public class ArticleService {
                 || isPublished
                 || (role.equals("AUTHOR") && isOwner)
                 || (role.equals("EDITOR") && status == ArticleStatus.PENDING_REVIEW)) {
-           Map<Long, String> displayNames = userProfileClient.getDisplayNames(Set.of(article.getAuthorAccountId()));
+           Map<Long, UserProfileInfoDto> userProfiles = userProfileClient.getUserProfileInfo(Set.of(article.getAuthorAccountId()));
            return new GetArticlesResponse(article.getId(),
-                   article.getAuthorAccountId(),
                    article.getTitle(),
                    article.getContent(),
-                   displayNames.get(article.getAuthorAccountId()),
+                   article.getCoverObjectKey(),
+                   Collections.singletonMap(article.getAuthorAccountId(), userProfiles.get(article.getAuthorAccountId())),
                    article.getStatus(),
                    article.getCreatedAt(),
                    article.getPublishedAt());

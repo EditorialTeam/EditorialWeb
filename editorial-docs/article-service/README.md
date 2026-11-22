@@ -68,21 +68,25 @@
 ```json
 {
   "articleId": 1,
-  "authorId": 7,
   "title": "Заголовок",
   "content": "Текст статьи",
-  "authorDisplayName": "Иван Иванов",
+  "authorInfo": {
+    "7": {
+      "displayName": "Иван Иванов",
+      "avatarObjectKey": "avatars/7/example.png"
+    }
+  },
   "status": "PUBLISHED",
   "createdAt": "2026-11-12T10:00:00Z",
   "publishedAt": "2026-11-12T11:00:00Z"
 }
 ```
 
-`authorId` содержит ID аккаунта автора. Фильтр общего списка по-прежнему называется `authorAccountId`. Поле `publishedAt` может содержать `null`.
+`authorInfo` — объект, ключом которого является строковый ID аккаунта автора. Значение содержит `displayName` и `avatarObjectKey`. Фильтр общего списка называется `authorAccountId`. Поле `publishedAt` может содержать `null`. Поля `authorId` и `authorDisplayName` в этом DTO отсутствуют.
 
 Имена авторов article-service получает у user-service через `POST /api/internal/users/batch`. Для страницы списка собирается набор уникальных ID авторов и выполняется один пакетный запрос. При получении статьи по ID передаётся ID аккаунта её автора. Запрос идёт напрямую на `http://user-service:8080`.
 
-Если профиль отсутствует, отображаемое имя равно `null` или запрос завершается ошибкой `RestClientException`, статья возвращается с `authorDisplayName: null`. При пустом наборе ID запрос к user-service пропускается. [Внутренний API профилей](../user-service/README.md#внутренний-api-профилей)
+Если профиль отсутствует или запрос завершается ошибкой `RestClientException`, значение по ID автора в `authorInfo` равно `null`, например `{"7":null}`. Если профиль найден, отдельные поля имени и аватара могут быть `null`. При пустом наборе ID запрос к user-service пропускается. [Внутренний API профилей](../user-service/README.md#внутренний-api-профилей)
 
 `GET /api/articles/my`, `GET /api/editor/articles`, создание и обновление возвращают `Article` со следующими полями.
 
@@ -95,11 +99,56 @@
   "status": "DRAFT",
   "createdAt": "2026-11-12T10:00:00Z",
   "updatedAt": null,
-  "publishedAt": null
+  "publishedAt": null,
+  "coverObjectKey": null
 }
 ```
 
 При создании сервис записывает `createdAt`, при `PUT` и `PATCH` — `updatedAt`, при одобрении — `publishedAt`. Причина отклонения хранится в базе, текущие ответы со статьёй её не содержат.
+
+## Обложка и изображения статьи
+
+Базовый путь — `/api/articles/file`. Для всех методов нужен JWT. Изменения разрешены `AUTHOR` для своей статьи в `DRAFT` или `REJECTED`, а `EDITOR` и `ADMIN` — для любой статьи в `DRAFT`, `REJECTED` или `PENDING_REVIEW`. Изменять обложку и изображения в `PUBLISHED` и `ARCHIVED` нельзя. Автор не может менять их во время модерации.
+
+| Метод | Путь | Запрос | Успешный ответ |
+| --- | --- | --- | --- |
+| POST | `/api/articles/file/{articleId}` | Multipart: `file`; параметр `category=COVER` или `ARTICLE_IMAGE` | `200`, `{"objectKey":"..."}` |
+| GET | `/api/articles/file/{articleId}` | Без тела | `200`, массив `id` и `objectKey` |
+| PUT | `/api/articles/file/{articleId}/{imageId}` | Multipart: `file`, без `category` | `200`, `{"objectKey":"..."}` |
+| DELETE | `/api/articles/file/{articleId}/{imageId}` | Без тела | `200`, без тела |
+
+GET использует те же правила видимости, что чтение статьи по ID: опубликованная статья доступна всем с JWT; `ADMIN` видит любую, `AUTHOR` — свою, `EDITOR` — также `PENDING_REVIEW`. Для существующей доступной статьи без изображений ответ — `[]`. Пагинация и сортировка списка не заданы.
+
+POST с `COVER` заменяет `coverObjectKey` статьи. POST с `ARTICLE_IMAGE` создаёт отдельную запись в `article_images`. Обложка не входит в список изображений. Её ключ есть в ответах с сущностью `Article`, но отсутствует в `GetArticlesResponse` общего списка и чтения по ID.
+
+Пример загрузки изображения (в PowerShell используйте `curl.exe`):
+
+```sh
+curl -X POST "http://localhost:8080/api/articles/file/1?category=ARTICLE_IMAGE" -H "Authorization: Bearer <accessToken>" -F "file=@image.png"
+```
+
+Получите ID изображения через GET:
+
+```json
+[
+  {"id": 10, "objectKey": "articles/1/example.png"}
+]
+```
+
+Замена файла сохраняет ID записи:
+
+```sh
+curl -X PUT "http://localhost:8080/api/articles/file/1/10" -H "Authorization: Bearer <accessToken>" -F "file=@replacement.png"
+curl -X DELETE "http://localhost:8080/api/articles/file/1/10" -H "Authorization: Bearer <accessToken>"
+```
+
+`imageId` должен принадлежать указанной статье, иначе возвращается `403`. Отсутствующая статья или изображение — `404 NOT_FOUND`, если запрос прошёл предшествующие проверки доступа. PUT/DELETE предназначены для `ARTICLE_IMAGE`; отдельного удаления обложки нет.
+
+Байты изображения скачиваются через [file-service](../file-service/README.md): `GET /api/files?key=...`, ключ нужно URL-кодировать. Допускаются JPEG, PNG, GIF и WebP, тип определяется по содержимому. Сервисная проверка допускает до 10 MiB, фактический HTTP-лимит также зависит от multipart-настроек приложений.
+
+При неудачной загрузке прежний ключ сохраняется. Неверный файл или категория дают `400 INVALID_FILE_REQUEST`, сбой обращения к file-service или пустой ключ в его ответе — `502 FILE_UPLOAD_FAILED`. При замене обложки/изображения и удалении изображения старый файл удаляется после коммита БД.
+
+Файловое хранилище не участвует в транзакции PostgreSQL: откат после загрузки может оставить файл без записи. Ошибка удаления файла только логируется, гарантированной повторной попытки нет. Удаление статьи каскадно удаляет строки `article_images`, но не сами объекты MinIO. Миграции: [V8](../../article-service/src/main/resources/db/migration/V8__add_cover_object_key.sql), [V9](../../article-service/src/main/resources/db/migration/V9__create_article_images.sql).
 
 ## Комментарии
 
@@ -107,11 +156,11 @@
 
 | Метод | Путь | Доступ | Успешный ответ |
 | --- | --- | --- | --- |
-| POST | `/api/articles/{articleId}/comments` | `AUTHOR`, `EDITOR`, `ADMIN`. Статья должна быть в `PUBLISHED` | `201`, `GetCommentsResponse` |
+| POST | `/api/articles/{articleId}/comments` | Любая роль с JWT. Статья должна быть в `PUBLISHED` | `201`, `GetCommentsResponse` |
 | GET | `/api/articles/{articleId}/comments` | Любая роль с действительным JWT | `200`, страница корневых комментариев |
 | GET | `/api/articles/{articleId}/comments/{rootCommentId}/replies` | Любая роль с действительным JWT | `200`, страница непосредственных ответов |
-| PATCH | `/api/articles/{articleId}/comments/{commentId}` | `AUTHOR`, `EDITOR`, `ADMIN`. Текст меняется только у автора комментария | `200`, объект с текущим `content` |
-| DELETE | `/api/articles/{articleId}/comments/{commentId}` | `AUTHOR`, `EDITOR`, `ADMIN`. Дополнительные условия приведены ниже | `204` |
+| PATCH | `/api/articles/{articleId}/comments/{commentId}` | Любая роль с JWT. Текст меняется только у автора комментария | `200`, объект с текущим `content` |
+| DELETE | `/api/articles/{articleId}/comments/{commentId}` | Любая роль с JWT. Дополнительные условия приведены ниже | `204` |
 
 ### Создание комментария и ответа
 
@@ -173,7 +222,7 @@
 }
 ```
 
-Текст меняется, если `sub` совпадает с `authorAccountId` комментария и `content` отличается от `null`. В текущем контроллере `PATCH` проверка длины и непустого текста отсутствует. Если запрос делает другой пользователь или поле пропущено, сервис возвращает `200` с прежним текстом.
+Текст меняется, если `sub` совпадает с `authorAccountId` комментария и `content` отличается от `null`. В текущем контроллере `PATCH` проверка длины и непустого текста отсутствует. Если запрос делает другой пользователь или поле пропущено / равно `null`, сервис возвращает `403 NOT_ENOUGH_RIGHTS`.
 
 Удаление выполняется логически. Сервис устанавливает `deleted: true` и заменяет текст на `This comment was deleted :(`. Запись и ответы на неё сохраняются.
 
@@ -182,7 +231,7 @@
 | `ADMIN` | Любой комментарий указанной статьи |
 | `AUTHOR` | Аккаунт владеет статьёй, к которой относится комментарий |
 | `EDITOR` | Аккаунт является автором комментария |
-| `USER` | В сервисе предусмотрено удаление своего комментария, но текущая конфигурация Spring Security отклоняет `DELETE` для этой роли |
+| `USER` | Аккаунт является автором комментария |
 
 При невыполнении условия удаления сервис возвращает `204` без изменения комментария. Проверки публикации статьи для редактирования и удаления отсутствуют. Комментарий должен принадлежать статье из пути и иметь `deleted: false`, иначе возвращается `409 ILLEGAL_COMMENT_STATE`.
 
@@ -190,14 +239,14 @@
 
 `createdAt` заполняется при создании. До первого редактирования `updatedAt` равен `null`. Когда автор передаёт отличное от `null` поле `content`, сервис сохраняет текст и записывает текущее время в `updatedAt`. Логическое удаление сохраняет прежнее значение `updatedAt`.
 
-[Миграция V4](../../article-service/src/main/resources/db/migration/V4__create_comments.sql) создаёт таблицу `comments` со связями на статью и родительский комментарий, а также индексами по статье, родителю и автору. Внешний ключ на статью задан без каскадного удаления. Физическое удаление статьи с комментариями ограничивается этим внешним ключом.
+[Миграция V4](../../article-service/src/main/resources/db/migration/V4__create_comments.sql) создаёт таблицу `comments` со связями на статью и родительский комментарий, а также индексами по статье, родителю и автору. [V6](../../article-service/src/main/resources/db/migration/V6__comments_on_delete.sql) добавляет `ON DELETE CASCADE` для связи комментариев со статьёй.
 
 ## Реакции на статьи
 
 | Метод | Путь | Доступ | Успешный ответ |
 | --- | --- | --- | --- |
-| PUT | `/api/articles/{articleId}/reactions` | `AUTHOR`, `EDITOR`, `ADMIN` | `200`, установленный тип реакции |
-| DELETE | `/api/articles/{articleId}/reactions` | `AUTHOR`, `EDITOR`, `ADMIN` | `204` |
+| PUT | `/api/articles/{articleId}/reactions` | Любая роль с действительным JWT | `200`, установленный тип реакции |
+| DELETE | `/api/articles/{articleId}/reactions` | Любая роль с действительным JWT | `204` |
 | GET | `/api/articles/{articleId}/reactions` | Любая роль с действительным JWT | `200`, счётчики реакций |
 
 Статья должна существовать. Статус публикации и правила видимости статьи по ID в этих операциях отдельно не проверяются. Для `PUT` и `DELETE` аккаунт определяется по `sub` токена.
@@ -241,7 +290,7 @@
 
 `DELETE` удаляет реакцию текущего аккаунта на указанную статью. Если такой реакции нет, возвращается `404 NOT_FOUND`. Тело запроса не требуется.
 
-[Миграция V5](../../article-service/src/main/resources/db/migration/V5__create_reactions.sql) создаёт таблицу `reactions` с уникальной парой `(article_id, author_account_id)`, внешним ключом на статью и индексом по `article_id`. У аккаунта может быть одна реакция на статью. Внешний ключ задан без каскадного удаления, поэтому физическое удаление статьи с реакциями ограничивается базой данных.
+[Миграция V5](../../article-service/src/main/resources/db/migration/V5__create_reactions.sql) создаёт таблицу `reactions` с уникальной парой `(article_id, author_account_id)`, внешним ключом на статью и индексом по `article_id`. У аккаунта может быть одна реакция на статью. В текущей [V7](../../article-service/src/main/resources/db/migration/V7__reactions_on_delete.sql) внешний ключ удаляется с `reactions`, а новый по ошибке добавляется к `comments`. Поэтому после применения текущей V7 реакции не получают ожидаемое каскадное удаление и могут остаться без статьи.
 
 ## Ошибки
 
@@ -250,12 +299,14 @@
 | 400 | `Validation error` | Тело запроса не прошло проверку полей |
 | 400 | `INVALID_JSON` | Некорректное тело JSON |
 | 400 | `UNKNOWN_REACTION` | Передана строка с неизвестным типом реакции |
+| 400 | `INVALID_FILE_REQUEST` | Неизвестная категория либо file-service отклонил файл |
 | 401 | — | Токен отсутствует или не прошёл проверку |
 | 403 | — | Роль отклонена на уровне Spring Security |
 | 403 | `NOT_ENOUGH_RIGHTS` | Операция отклонена проверкой в article-service |
-| 404 | `NOT_FOUND` | Статья, комментарий или удаляемая реакция текущего аккаунта не найдены |
+| 404 | `NOT_FOUND` | Статья, изображение, комментарий или удаляемая реакция текущего аккаунта не найдены |
 | 409 | `INCORRECT_ARTICLE_STATUS` | Операция недоступна для текущего статуса статьи, в том числе создание комментария |
 | 409 | `ILLEGAL_COMMENT_STATE` | Редактируемый или удаляемый комментарий уже удалён либо относится к другой статье |
+| 502 | `FILE_UPLOAD_FAILED` | File-service недоступен, вернул серверную ошибку или пустой ключ |
 
 Обработанные сервисом ошибки содержат поля `code`, `message` и `errors`. Для ошибок полей `errors` содержит сообщения по каждому полю, в остальных случаях возвращается `{}` или `null`.
 

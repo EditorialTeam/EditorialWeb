@@ -2,6 +2,7 @@ package com.editorial.file.service;
 
 import com.editorial.file.configuration.MinioConfig;
 import com.editorial.file.configuration.MinioProperties;
+import com.editorial.file.dto.UploadFileResponse;
 import com.editorial.file.exception.FileStorageException;
 import com.editorial.file.exception.UploadedFileNotFoundException;
 import com.editorial.file.model.enums.FileCategory;
@@ -35,7 +36,7 @@ public class FileStorageService {
         this.minioProperties = minioProperties;
     }
 
-    public String upload(MultipartFile file, FileCategory category, long entityId) throws IOException {
+    public UploadFileResponse upload(MultipartFile file, FileCategory category, long entityId) {
         if (file.isEmpty() || file.getSize() > MAX_FILE_SIZE) throw new FileStorageException("File is empty or too big");
 
         String detectedType;
@@ -58,13 +59,13 @@ public class FileStorageService {
                             .contentType(detectedType)
                             .build()
             );
-            return objectKey;
+            return new UploadFileResponse(objectKey);
         } catch (Exception e) {
             throw new FileStorageException("Failed to upload file");
         }
     }
 
-    public InputStream download(String objectKey) {
+    public GetObjectResponse download(String objectKey) {
         if (objectKey == null || objectKey.isBlank()) throw new IllegalArgumentException("Blank or null key");
 
         try {
@@ -104,7 +105,7 @@ public class FileStorageService {
             case MediaType.IMAGE_PNG_VALUE -> ".png";
             case MediaType.IMAGE_GIF_VALUE -> ".gif";
             case "image/webp" -> ".webp";
-            default -> "";
+            default -> throw new FileStorageException("Unsupported image type");
         };
     }
 }

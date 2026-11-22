@@ -8,6 +8,8 @@
 | --- | --- | --- |
 | GET | `/api/users/me` | `200` с тегом, отображаемым именем, датой создания, ID аккаунта и описанием |
 | PATCH | `/api/users/me` | `200` с текущими значениями отображаемого имени и описания |
+| POST | `/api/users/me/avatar` | `200`, `{"objectKey":"..."}` |
+| GET | `/api/users/me/avatar` | `200`, байты изображения с `Content-Type` |
 
 ## Чтение профиля
 
@@ -19,7 +21,8 @@
   "displayName": null,
   "createdAt": "2026-11-05T12:00:00Z",
   "accountId": 7,
-  "profileDescription": null
+  "profileDescription": null,
+  "avatarObjectKey": null
 }
 ```
 
@@ -35,6 +38,20 @@
 ```
 
 Ответ содержит `displayName` и `profileDescription` после обновления. Оба поля также входят в ответ чтения профиля и в список профилей. Переданная строка сохраняется, в том числе пустая. Отсутствующее поле и явный `null` означают пропуск обновления этого поля.
+
+## Аватар
+
+`POST /api/users/me/avatar` принимает `multipart/form-data` с частью `file`. Аккаунт определяется по JWT, категория `AVATAR` выставляется сервисом. Повторная загрузка заменяет `avatarObjectKey` профиля, прежний файл удаляется после коммита БД.
+
+```sh
+curl -X POST "http://localhost:8080/api/users/me/avatar" -H "Authorization: Bearer <accessToken>" -F "file=@avatar.png"
+```
+
+В PowerShell используйте `curl.exe`. Ответ содержит ключ вида `avatars/7/<uuid>.png`. Он также входит в `GET /api/users/me`, административный список и внутренний batch API. Чтобы получить бинарное изображение текущего пользователя, вызовите `GET /api/users/me/avatar` с JWT. Известный ключ можно скачать через [публичный файловый API](../file-service/README.md).
+
+File-service принимает JPEG, PNG, GIF и WebP, определяет MIME по содержимому и проверяет размер до 10 MiB. На HTTP-запрос также влияют multipart-лимиты приложений. Отдельные методы удаления аватара или чтения аватара другого аккаунта в user-service не реализованы.
+
+Обработка ошибок аватара пока отличается от article-service: HTTP-ошибка загрузки может превратиться в `null` и перезаписать ключ профиля; ошибка скачивания возвращает `null` из клиента и может привести к `500`. Для профиля без аватара отдельный ответ `404` не задан. Клиент загрузки использует `MultipartBodyBuilder`, для которого в окружении без `reactive-streams` возможна ошибка зависимости. Эти ограничения не являются гарантированным успешным поведением API.
 
 ## Управление профилями
 
@@ -63,8 +80,8 @@ Article-service получает отображаемые имена автор�
 
 ```json
 [
-  {"accountId": 7, "displayName": "Иван Иванов"},
-  {"accountId": 8, "displayName": null}
+  {"accountId": 7, "displayName": "Иван Иванов", "avatarObjectKey": "avatars/7/example.png"},
+  {"accountId": 8, "displayName": null, "avatarObjectKey": null}
 ]
 ```
 
@@ -77,10 +94,11 @@ Article-service получает отображаемые имена автор�
 | `username` | Обязательный тег, полученный от auth-service при регистрации. В базе профилей хранится как `TEXT` без ограничения длины. |
 | `displayName` | Отображаемое имя, например ФИО. При создании профиля имеет значение `null`. |
 | `profileDescription` | Описание профиля. При создании профиля имеет значение `null`. |
+| `avatarObjectKey` | Ключ объекта MinIO, изначально `null`. Сами байты в БД не хранятся. |
 
 Flyway применяет [V4](../../user-service/src/main/resources/db/migration/V4__split_username_and_display_name.sql), которая переносит прежние значения `display_name` в `username` и добавляет новую колонку для отображаемого имени. [V5](../../user-service/src/main/resources/db/migration/V5__add_profile_description.sql) добавляет nullable-колонку `profile_description` типа `TEXT`.
 
-Профиль создаётся по [событию Kafka](../auth-service/README.md#создание-профиля-через-kafka). После записи профиля user-service отправляет подтверждение для активации аккаунта.
+[V6](../../user-service/src/main/resources/db/migration/V6__add_avatar_object_key.sql) добавляет колонку ключа аватара. Профиль создаётся по [событию Kafka](../auth-service/README.md#создание-профиля-через-kafka). После записи профиля user-service отправляет подтверждение для активации аккаунта.
 
 ## Ошибки
 
