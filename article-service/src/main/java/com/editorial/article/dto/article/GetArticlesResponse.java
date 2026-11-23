@@ -13,6 +13,7 @@ public record GetArticlesResponse(long articleId,
                                   Map<Long, UserProfileInfoDto> authorInfo,
                                   ArticleStatus status,
                                   Instant createdAt,
-                                  Instant publishedAt) {
+                                  Instant publishedAt,
+                                  String rejectionReason) {
 
 }

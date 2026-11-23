@@ -102,6 +102,10 @@ public class Article {
         return coverObjectKey;
     }
 
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
     //testing
     public void setId(Long id) {
         this.id = id;

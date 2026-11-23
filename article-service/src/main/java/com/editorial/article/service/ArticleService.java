@@ -64,7 +64,8 @@ public class ArticleService {
                         Collections.singletonMap(article.getAuthorAccountId(), userProfiles.get(article.getAuthorAccountId())),
                         article.getStatus(),
                         article.getCreatedAt(),
-                        article.getPublishedAt()));
+                        article.getPublishedAt(),
+                        article.getRejectionReason()));
     }
 
     @Transactional(readOnly = true)
@@ -94,7 +95,8 @@ public class ArticleService {
                    Collections.singletonMap(article.getAuthorAccountId(), userProfiles.get(article.getAuthorAccountId())),
                    article.getStatus(),
                    article.getCreatedAt(),
-                   article.getPublishedAt());
+                   article.getPublishedAt(),
+                   article.getRejectionReason());
         }
 
         throw new AccessDeniedException("Not enough rights to view this article");
