@@ -29,8 +29,7 @@ public class UserRepositoryTest {
 
     @Test
     void shouldSaveAndFindUser() {
-        User user = new User(100L, "editorial_user");
-        user.setDisplayName("Editorial User");
+        User user = new User(100L, "editorial_user", "Editorial User");
         user.setProfileDescription("Writer and editor");
 
         User saved = repository.save(user);
