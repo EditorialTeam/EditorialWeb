@@ -52,7 +52,7 @@ public class UserService {
         if (repository.existsByAccountId(request.accountId())) return;
         UUID uuid = UUID.randomUUID();
 
-        User savedUser = repository.save(new User(request.accountId(), request.username()));
+        User savedUser = repository.save(new User(request.accountId(), request.username(), request.displayName()));
         RegisteredProfile kafkaPayload = new RegisteredProfile(uuid, savedUser.getAccountId());
         outboxRepository.save(new OutboxEvent(uuid, savedUser.getAccountId(), "PROFILE_CREATED", objectMapper.valueToTree(kafkaPayload)));
         //return savedUser;

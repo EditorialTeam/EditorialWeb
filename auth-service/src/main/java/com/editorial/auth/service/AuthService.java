@@ -61,7 +61,7 @@ public class AuthService {
         Account saved = repository.save(new Account(username, email, hash, AccountRole.USER, AccountStatus.PENDING));
 
         UUID uuid = UUID.randomUUID();
-        ProfileCreationRequested registrationRequest = new ProfileCreationRequested(uuid, saved.getId(), username);
+        ProfileCreationRequested registrationRequest = new ProfileCreationRequested(uuid, saved.getId(), username, request.displayName());
 
         outboxRepository.save(new OutboxEvent(uuid, saved.getId(), "PROFILE_CREATION_REQUESTED", objectMapper.valueToTree(registrationRequest)));
 
