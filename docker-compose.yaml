@@ -21,7 +21,7 @@ services:
       POSTGRES_USER: editorial
       POSTGRES_PASSWORD: ${ARTICLE_DB_PASSWORD}
     ports:
-      - "5434:5432"
+      - "127.0.0.1:5434:5432"
     volumes:
       - articles_pgdata:/var/lib/postgresql
     healthcheck:
@@ -37,7 +37,7 @@ services:
       POSTGRES_USER: editorial
       POSTGRES_PASSWORD: ${USER_DB_PASSWORD}
     ports:
-      - "5435:5432"
+      - "127.0.0.1:5435:5432"
     volumes:
       - users_pgdata:/var/lib/postgresql
     healthcheck:
@@ -80,7 +80,7 @@ services:
         POSTGRES_USER: editorial
         POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD}
       ports:
-        - "5436:5432"
+        - "127.0.0.1:5436:5432"
       volumes:
         - auth_pgdata:/var/lib/postgresql
       healthcheck:
