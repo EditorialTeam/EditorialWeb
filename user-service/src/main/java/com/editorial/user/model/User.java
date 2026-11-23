@@ -39,9 +39,10 @@ public class User {
 
     protected User() {}
 
-    public User(Long accountId, String username) {
+    public User(Long accountId, String username, String displayName) {
         this.accountId = accountId;
         this.username = username;
+        this.displayName = displayName;
     }
 
     public User(String displayName, String profileDescription) {
