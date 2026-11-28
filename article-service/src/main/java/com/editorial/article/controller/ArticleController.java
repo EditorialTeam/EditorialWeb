@@ -32,11 +32,12 @@ public class ArticleController {
             @RequestParam(required = false) ArticleStatus status,
             @RequestParam(required = false) Long authorAccountId,
             @Min(0)@RequestParam(name="page", defaultValue = "0") int page,
-            @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size) {
-        Pageable request = PageRequest.of(page, size,
-                Sort.by("id").ascending());
+            @Min(1) @Max(100) @RequestParam(name="size", defaultValue = "20") int size,
+            @AuthenticationPrincipal Jwt jwt) {
 
-        return ResponseEntity.ok(service.getAll(request, status, authorAccountId));
+        Pageable request = PageRequest.of(page, size, Sort.by("id").ascending());
+
+        return ResponseEntity.ok(service.getAll(request, status, authorAccountId, jwt.getClaimAsString("role")));
     }
 
     @GetMapping("/my")

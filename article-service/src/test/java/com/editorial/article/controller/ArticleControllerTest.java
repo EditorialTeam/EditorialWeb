@@ -11,6 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -97,5 +100,22 @@ public class ArticleControllerTest {
                 .andExpect(status().isCreated());
 
         verify(service).add(request, 1L);
+    }
+
+    @Test
+    void shouldPassRoleAndFiltersToServiceOnGetArticles() throws Exception {
+        PageRequest expectedPageable = PageRequest.of(1, 5, Sort.by("id").ascending());
+        when(service.getAll(expectedPageable, ArticleStatus.DRAFT, 10L, "USER")).thenReturn(Page.empty());
+
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/articles")
+                        .param("status", "DRAFT")
+                        .param("authorAccountId", "10")
+                        .param("page", "1")
+                        .param("size", "5")
+                        .with(jwt().jwt(builder -> builder.subject("99").claim("role", "USER"))
+                                .authorities(new SimpleGrantedAuthority("ROLE_USER"))))
+                .andExpect(status().isOk());
+
+        verify(service).getAll(expectedPageable, ArticleStatus.DRAFT, 10L, "USER");
     }
 }
