@@ -6,6 +6,7 @@ import com.editorial.article.dto.client.UserProfileInfoDto;
 import com.editorial.article.model.entity.Article;
 import com.editorial.article.model.enums.ArticleStatus;
 import com.editorial.article.repository.ArticleRepository;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -58,6 +59,11 @@ public class ArticleApiIntegrationTest {
 
     private final ObjectMapper objectMapper = new ObjectMapper();
 
+    @BeforeEach
+    void setUp() {
+        articleRepository.deleteAll();
+    }
+
     @Test
     void shouldCreateArticleAndPersistInDatabase() throws Exception {
         CreateArticleRequest request = new CreateArticleRequest("Integration Article Title", "Integration Article Content");
@@ -89,5 +95,75 @@ public class ArticleApiIntegrationTest {
                 .andExpect(jsonPath("$.articleId").value(saved.getId()))
                 .andExpect(jsonPath("$.title").value("Saved Title"))
                 .andExpect(jsonPath("$.authorInfo['42'].displayName").value("Author 42"));
+    }
+
+    @Test
+    void shouldReturnOnlyPublishedArticlesForRegularUser() throws Exception {
+        Article published = articleRepository.save(new Article("Published Title", "Published Content", 10L, ArticleStatus.PUBLISHED));
+        articleRepository.save(new Article("Draft Title", "Secret Draft Content", 10L, ArticleStatus.DRAFT));
+
+        Article rejected = new Article("Rejected Title", "Secret Rejected Content", 10L, ArticleStatus.REJECTED);
+        rejected.setRejectionReason("Private moderator reason");
+        articleRepository.save(rejected);
+
+        when(userProfileClient.getUserProfileInfo(any())).thenReturn(Map.of(10L, new UserProfileInfoDto("Author 10", null)));
+
+        var userJwt = jwt().jwt(builder -> builder.subject("99").claim("role", "USER"))
+                .authorities(new SimpleGrantedAuthority("ROLE_USER"));
+
+        mockMvc.perform(get("/api/articles").with(userJwt))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].articleId").value(published.getId()))
+                .andExpect(jsonPath("$.content[0].status").value("PUBLISHED"));
+
+        mockMvc.perform(get("/api/articles").param("status", "DRAFT").with(userJwt))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].articleId").value(published.getId()))
+                .andExpect(jsonPath("$.content[0].status").value("PUBLISHED"));
+
+        mockMvc.perform(get("/api/articles").param("status", "REJECTED").with(userJwt))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].articleId").value(published.getId()))
+                .andExpect(jsonPath("$.content[0].status").value("PUBLISHED"));
+    }
+
+    @Test
+    void shouldAllowFilteringByStatusForAdminAndEditor() throws Exception {
+        articleRepository.save(new Article("Published Title", "Published Content", 10L, ArticleStatus.PUBLISHED));
+        Article draft = articleRepository.save(new Article("Draft Title", "Draft Content", 10L, ArticleStatus.DRAFT));
+
+        Article rejected = new Article("Rejected Title", "Rejected Content", 10L, ArticleStatus.REJECTED);
+        rejected.setRejectionReason("Needs sources");
+        articleRepository.save(rejected);
+
+        when(userProfileClient.getUserProfileInfo(any())).thenReturn(Map.of(10L, new UserProfileInfoDto("Author 10", null)));
+
+        mockMvc.perform(get("/api/articles")
+                        .param("status", "DRAFT")
+                        .with(jwt().jwt(builder -> builder.subject("1").claim("role", "ADMIN"))
+                                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].articleId").value(draft.getId()))
+                .andExpect(jsonPath("$.content[0].status").value("DRAFT"));
+
+        mockMvc.perform(get("/api/articles")
+                        .param("status", "REJECTED")
+                        .with(jwt().jwt(builder -> builder.subject("2").claim("role", "EDITOR"))
+                                .authorities(new SimpleGrantedAuthority("ROLE_EDITOR"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(1))
+                .andExpect(jsonPath("$.content[0].articleId").value(rejected.getId()))
+                .andExpect(jsonPath("$.content[0].status").value("REJECTED"))
+                .andExpect(jsonPath("$.content[0].rejectionReason").value("Needs sources"));
+
+        mockMvc.perform(get("/api/articles")
+                        .with(jwt().jwt(builder -> builder.subject("1").claim("role", "ADMIN"))
+                                .authorities(new SimpleGrantedAuthority("ROLE_ADMIN"))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content.length()").value(3));
     }
 }

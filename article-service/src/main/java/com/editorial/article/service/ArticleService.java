@@ -47,8 +47,15 @@ public class ArticleService {
     }
 
     @Transactional(readOnly = true)
-    public Page<GetArticlesResponse> getAll(Pageable request, ArticleStatus status, Long accountId) {
-        Specification<Article> specification = Specification.allOf(ArticleSpecifications.hasAuthorAccountId(accountId).and(ArticleSpecifications.hasStatus(status)));
+    public Page<GetArticlesResponse> getAll(Pageable request, ArticleStatus status, Long accountId, String role) {
+
+        if (!role.equals("ADMIN") && !role.equals("EDITOR")) {
+            status = ArticleStatus.PUBLISHED;
+        }
+
+        Specification<Article> specification = Specification.<Article>unrestricted()
+                .and(ArticleSpecifications.hasAuthorAccountId(accountId))
+                .and(ArticleSpecifications.hasStatus(status));
 
         Page<Article> articles =  repository.findAll(specification, request);
 
